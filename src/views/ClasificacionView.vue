@@ -44,6 +44,8 @@ import { useAuthStore } from '@/store/auth';
 import { useRouter } from 'vue-router';
 import LoadingPage from "../components/LoadingPage.vue";
 import axios from 'axios';
+import { emotionApi } from '../axiosInstances';
+
 
 const authStore = useAuthStore();
 const router = useRouter();
@@ -56,7 +58,7 @@ const photos = ref([]);
 const audioEmotions = ref(null);
 const photoEmotions = ref(null);
 const combinedEmotions = ref(null);
-const timeRemaining = ref(60);
+const timeRemaining = ref(10);
 const totalRecordingTime = ref(0);
 const audioURL = ref('');
 const recordingCompleted = ref(false);
@@ -79,7 +81,7 @@ const startRecording = async () => {
 
     mediaRecorder.value.onstop = () => {
       clearInterval(countdownInterval);
-      const blob = new Blob(recordedChunks.value, { type: 'audio/webm' });
+      const blob = new Blob(recordedChunks.value, { type: 'audio/wav' });
       audioURL.value = URL.createObjectURL(blob);
     };
 
@@ -91,14 +93,14 @@ const startRecording = async () => {
 
     countdownInterval = setInterval(() => {
       totalRecordingTime.value += 1; 
-      timeRemaining.value = 60 - totalRecordingTime.value; 
+      timeRemaining.value = 10 - totalRecordingTime.value; 
 
-      if (totalRecordingTime.value >= 60) {
+      if (totalRecordingTime.value >= 10) {
         stopRecording(); 
       }
 
       // Toma fotos en los segundos específicos
-      if ([12, 24, 36, 48, 60].includes(totalRecordingTime.value)) {
+      if ([2, 4, 6, 8, 10].includes(totalRecordingTime.value)) {
         takePhoto();
       }
     }, 1000);
@@ -113,7 +115,7 @@ const stopRecording = () => {
   }
   recording.value = false; 
   paused.value = true; 
-  timeRemaining.value = 60;
+  timeRemaining.value = 10;
   recordingCompleted.value = true;
 };
 
@@ -140,14 +142,14 @@ const continueRecording = () => {
 
     countdownInterval = setInterval(() => {
       totalRecordingTime.value += 1; 
-      timeRemaining.value = 60 - totalRecordingTime.value; 
+      timeRemaining.value = 10 - totalRecordingTime.value; 
 
       // Toma fotos en los segundos específicos
-      if ([12, 24, 36, 48, 60].includes(totalRecordingTime.value)) {
+      if ([2, 4, 6, 8, 10].includes(totalRecordingTime.value)) {
         takePhoto();
       }
 
-      if (totalRecordingTime.value >= 60) {
+      if (totalRecordingTime.value >= 10) {
         stopRecording(); 
       }
     }, 1000);
@@ -166,17 +168,18 @@ const takePhoto = () => {
 
 const processRecording = async () => {
   loading.value = true;
-  const blob = new Blob(recordedChunks.value, { type: 'audio/webm' });
-  const audioFileName = 'audio_recording.webm';
+  const blob = new Blob(recordedChunks.value, { type: 'audio/wav' });
   const formData = new FormData();
-  formData.append(audioFileName, blob);
-  photos.value.forEach((photo) => {
-    formData.append(photo.name, photo.data);
-  });
+  formData.append('audio', blob, 'audio_recording.wav');
 
   try {
     // Petición 1: Enviar solo el audio
-    const audioResponse = await axios.post('http://localhost:5000/predict_audio', formData);
+    const audioResponse = await emotionApi.post('/predict_audio', formData, {
+      headers: {
+        'Content-Type': 'null',
+      },
+    });
+    console.log(audioResponse.data);
     const maxAudioEmotion = audioResponse.data.predictions.reduce((max, emotion) => emotion.probability > max.probability ? emotion : max);
 
     // Petición 2: Enviar solo las fotos
@@ -185,11 +188,17 @@ const processRecording = async () => {
       photosFormData.append(photo.name, photo.data);
     });
 
-    const photosResponse = await axios.post('http://localhost:5000/predict_image', photosFormData);
+    const photosResponse = await emotionApi.post('/predict_image', photosFormData);
+    console.log(photosResponse.data);
     const maxPhotoEmotion = photosResponse.data.predictions.reduce((max, emotion) => emotion.probability > max.probability ? emotion : max);
 
+    photos.value.forEach((photo) => {
+    formData.append(photo.name, photo.data);
+  });
+
     // Petición 3: Enviar el audio y las fotos
-    const combinedResponse = await axios.post('http://localhost:5000/predict_mult', formData);
+    const combinedResponse = await emotionApi.post('/predict_mult', formData);
+    console.log(combinedResponse);
     const maxCombinedEmotion = combinedResponse.data.predictions.reduce((max, emotion) => emotion.probability > max.probability ? emotion : max);
 
     audioEmotions.value = maxAudioEmotion.label;
@@ -219,7 +228,7 @@ const cancel = () => {
   loading.value = false; 
   recording.value = false; 
   paused.value = true; 
-  timeRemaining.value = 60; 
+  timeRemaining.value = 10; 
   recordingCompleted.value = false;
 };
 </script>
