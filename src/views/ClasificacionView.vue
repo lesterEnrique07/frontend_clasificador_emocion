@@ -15,7 +15,7 @@
               <img v-for="(photo, index) in photos" :key="index" :src="photo.data" class="photo"/>
             </div>
             <audio v-if="audioURL" :src="audioURL" controls class="audio"></audio>
-            <v-btn v-if="photos.length === 5 && !recording" @click="processRecording" class="bg-green-darken-4 input" dark block>Procesar</v-btn>
+            <v-btn v-if="photos.length === 5 &&  !recording" @click="processRecording" class="bg-green-darken-4 input" dark block>Procesar</v-btn>
             <v-btn @click="cancel" class="bg-blue-grey-darken-4 input" dark block>Cancelar</v-btn>
             <div v-if="audioEmotions">
             <h4>Emoción del Audio</h4>
@@ -58,20 +58,23 @@ const photos = ref([]);
 const audioEmotions = ref(null);
 const photoEmotions = ref(null);
 const combinedEmotions = ref(null);
-const timeRemaining = ref(10);
+const timeRemaining = ref(60); 
 const totalRecordingTime = ref(0);
 const audioURL = ref('');
 const recordingCompleted = ref(false);
 let photoInterval = null;
 let countdownInterval = null;
+let audioStream = null;
+let videoStream = null;
 
 const startRecording = async () => {
   try {
-    const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true });
+    const videoStream = await navigator.mediaDevices.getUserMedia({ video: true });
+    const audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
     const video = document.querySelector('video');
-    video.srcObject = stream;
+    video.srcObject = videoStream;
     video.play();
-    mediaRecorder.value = new MediaRecorder(stream);
+    mediaRecorder.value = new MediaRecorder(audioStream);
 
     mediaRecorder.value.ondataavailable = event => {
       if (event.data.size > 0) {
@@ -93,14 +96,14 @@ const startRecording = async () => {
 
     countdownInterval = setInterval(() => {
       totalRecordingTime.value += 1; 
-      timeRemaining.value = 10 - totalRecordingTime.value; 
+      timeRemaining.value = 60 - totalRecordingTime.value;
 
-      if (totalRecordingTime.value >= 10) {
+      if (totalRecordingTime.value >= 60) {  
         stopRecording(); 
       }
 
       // Toma fotos en los segundos específicos
-      if ([2, 4, 6, 8, 10].includes(totalRecordingTime.value)) {
+      if ([12, 24, 36, 48, 60].includes(totalRecordingTime.value)) {
         takePhoto();
       }
     }, 1000);
@@ -115,7 +118,7 @@ const stopRecording = () => {
   }
   recording.value = false; 
   paused.value = true; 
-  timeRemaining.value = 10;
+  timeRemaining.value = 60;
   recordingCompleted.value = true;
 };
 
@@ -142,14 +145,14 @@ const continueRecording = () => {
 
     countdownInterval = setInterval(() => {
       totalRecordingTime.value += 1; 
-      timeRemaining.value = 10 - totalRecordingTime.value; 
+      timeRemaining.value = 60 - totalRecordingTime.value; 
 
       // Toma fotos en los segundos específicos
-      if ([2, 4, 6, 8, 10].includes(totalRecordingTime.value)) {
+      if ([12, 24, 36, 48, 60].includes(totalRecordingTime.value)) {
         takePhoto();
       }
 
-      if (totalRecordingTime.value >= 10) {
+      if (totalRecordingTime.value >= 60) {
         stopRecording(); 
       }
     }, 1000);
@@ -167,47 +170,83 @@ const takePhoto = () => {
 };
 
 const processRecording = async () => {
+  var a = document.createElement('a')
   loading.value = true;
-  const blob = new Blob(recordedChunks.value, { type: 'audio/wav' });
+  const audioBlob = new Blob(recordedChunks.value, { type: 'audio/wav' });
+  const audioFile = new File([audioBlob], 'audio_recording.wav', { type: 'audio/wav' });
   const formData = new FormData();
-  formData.append('audio', blob, 'audio_recording.wav');
-
+  a.href = window.URL.createObjectURL(audioBlob)
+  a.download = 'audio_recording.wav'
+  a.click()
+  formData.append('audio', audioFile);
   try {
     // Petición 1: Enviar solo el audio
+
     const audioResponse = await emotionApi.post('/predict_audio', formData, {
       headers: {
-        'Content-Type': 'null',
+        'Content-Type': null,
       },
     });
     console.log(audioResponse.data);
-    const maxAudioEmotion = audioResponse.data.predictions.reduce((max, emotion) => emotion.probability > max.probability ? emotion : max);
-
+    let maxAudioEmotion = {};
+    if (audioResponse.data && Array.isArray(audioResponse.data.predictions)) {
+      maxAudioEmotion = audioResponse.data.predictions.reduce((max, emotion) => {
+        return emotion.probability > max.probability ? emotion : max;
+      });
+      console.log('Emoción del audio:', maxAudioEmotion);
+    } else {
+      console.error('No se recibieron predicciones válidas:', audioResponse.data);
+    } 
+    
     // Petición 2: Enviar solo las fotos
-    const photosFormData = new FormData();
-    photos.value.forEach((photo) => {
-      photosFormData.append(photo.name, photo.data);
+
+    const IMAGE_PATHS = photos.value.map(photo => {
+      return fetch(photo.data)
+        .then(res => res.blob())
+        .then(blob => {
+          return new File([blob], photo.name, { type: 'image/png' });
+        });
     });
 
-    const photosResponse = await emotionApi.post('/predict_image', photosFormData);
+    const files = await Promise.all(IMAGE_PATHS);
+
+    const photosFormData = new FormData();
+    files.forEach(file => {
+      photosFormData.append('images', file);
+    });
+    console.log('Imagenes form data', photosFormData)
+    const photosResponse = await emotionApi.post('/predict_image', photosFormData, {
+      headers: {
+      'Content-Type': null, 
+      },
+    });
     console.log(photosResponse.data);
-    const maxPhotoEmotion = photosResponse.data.predictions.reduce((max, emotion) => emotion.probability > max.probability ? emotion : max);
+    let maxPhotoEmotion = {};
+    if (photosResponse.data && Array.isArray(photosResponse.data.predictions)) {
+      maxPhotoEmotion = photosResponse.data.predictions.reduce((max, emotion) => {
+        return emotion.probability > max.probability ? emotion : max;
+      });
+      console.log('Emoción de las fotos:', maxPhotoEmotion);
+    } else {
+      console.error('No se recibieron predicciones válidas:', photosResponse.data);
+    }
 
     photos.value.forEach((photo) => {
     formData.append(photo.name, photo.data);
   });
 
     // Petición 3: Enviar el audio y las fotos
-    const combinedResponse = await emotionApi.post('/predict_mult', formData);
+    /*const combinedResponse = await emotionApi.post('/predict_mult', formData);
     console.log(combinedResponse);
     const maxCombinedEmotion = combinedResponse.data.predictions.reduce((max, emotion) => emotion.probability > max.probability ? emotion : max);
-
-    audioEmotions.value = maxAudioEmotion.label;
+*/
+    //audioEmotions.value = maxAudioEmotion.label;
     photoEmotions.value = maxPhotoEmotion.label;
-    combinedEmotions.value = maxCombinedEmotion.label;
+    //combinedEmotions.value = maxCombinedEmotion.label;
 
-    console.log('Audio emociones:', audioEmotions.value);
-    console.log('Fotos emociones:', photoEmotions.value);
-    console.log('Combinado emociones:', combinedEmotions.value);
+    console.log('Audio emoción:', audioEmotions.value);
+    console.log('Fotos emoción:', photoEmotions.value);
+    //console.log('Combinado emociones:', combinedEmotions.value);
   } catch (error) {
     console.error('Error en la clasificación de emociones:', error);
   } finally {
@@ -228,7 +267,7 @@ const cancel = () => {
   loading.value = false; 
   recording.value = false; 
   paused.value = true; 
-  timeRemaining.value = 10; 
+  timeRemaining.value = 60; 
   recordingCompleted.value = false;
 };
 </script>
