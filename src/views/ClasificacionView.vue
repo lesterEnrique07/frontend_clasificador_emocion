@@ -3,7 +3,7 @@
   <div class="main-content">
   <v-container class="mt-5">
     <v-row justify="center">
-      <v-col cols="12" sm="8" md="6">
+      <v-col cols="12" sm="10" md="8">
         <v-card class="border border-success">
           <v-card-title class="bg-success text-white">Clasificación de Emociones</v-card-title>
           <v-card-text>
@@ -17,18 +17,23 @@
             <audio v-if="audioURL" :src="audioURL" controls class="audio"></audio>
             <v-btn v-if="photos.length === 5 &&  !recording" @click="processRecording" class="bg-green-darken-4 input" dark block>Procesar</v-btn>
             <v-btn @click="cancel" class="bg-blue-grey-darken-4 input" dark block>Cancelar</v-btn>
-            <div v-if="audioEmotions">
-            <h4>Emoción del Audio</h4>
-            <p>{{ audioEmotions }}</p>
-            </div>
-            <div v-if="photoEmotions">
-            <h4>Emoción de las Fotos</h4>
-            <p>{{ photoEmotions }}</p>
-            </div>
-            <div v-if="combinedEmotions">
-            <h4>Emoción Combinada</h4>
-            <p>{{ combinedEmotions }}</p>
-            </div>
+            <div v-if="audioEmotions || photoEmotions || combinedEmotions" class="emotion-results">
+                <div v-if="audioEmotions" class="emotion-box">
+                  <img :src="getEmotionImage(audioEmotions)" alt="Emoción del Audio" class="emotion-image" />
+                  <h4>Emoción del Audio</h4>
+                  <p>{{ traducirEmocion(audioEmotions) }}</p>
+                </div>
+                <div v-if="photoEmotions" class="emotion-box">
+                  <img :src="getEmotionImage(photoEmotions)" alt="Emoción de las Fotos" class="emotion-image" />
+                  <h4>Emoción de las Fotos</h4>
+                  <p>{{ traducirEmocion(photoEmotions) }}</p>
+                </div>
+                <div v-if="combinedEmotions" class="emotion-box">
+                  <img :src="getEmotionImage(combinedEmotions)" alt="Emoción Combinado" class="emotion-image" />
+                  <h4>Emoción Combinado</h4>
+                  <p>{{ traducirEmocion(combinedEmotions) }}</p>
+                </div>
+              </div>
             <video ref="video" style="display: none;"></video>
           </v-card-text>
         </v-card>
@@ -62,15 +67,64 @@ const timeRemaining = ref(60);
 const totalRecordingTime = ref(0);
 const audioURL = ref('');
 const recordingCompleted = ref(false);
+const audioFragments = ref([]); 
+const fragmentDuration = 2000;  
+const fragmentSeconds = [10, 22, 34, 46, 58];
 let photoInterval = null;
 let countdownInterval = null;
-let audioStream = null;
 let videoStream = null;
+let audioStream = null;
+let audiofragmentoStream = null;
+
+const traducirEmocion = (emocionIngles) => {
+  const emocionesTraduccion = {
+    "angry": "Ira",
+    "fearful": "Miedo",
+    "happy": "Felicidad",
+    "sad": "Tristeza",
+    "neutral": "Neutralidad",
+    "disgusted": "Asco",
+    "other": "Neutralidad"
+  };
+  return emocionesTraduccion[emocionIngles] || emocionIngles;
+};
+
+const getEmotionImage = (emotion) => {
+  const emotionImages = {
+    "angry": require('@/assets/3-Ira.jpg'),
+    "fearful": require('@/assets/4-Miedo.jpg'),
+    "happy": require('@/assets/2-Felicidad.jpg'),
+    "sad": require('@/assets/6-Tristeza.jpg'),
+    "neutral": require('@/assets/5-Neutralidad.jpg'),
+    "disgusted": require('@/assets/1-Asco.jpg'),
+    "other": require('@/assets/5-Neutralidad.jpg'),
+  };
+  return emotionImages[emotion];
+};
 
 const startRecording = async () => {
   try {
     const videoStream = await navigator.mediaDevices.getUserMedia({ video: true });
     const audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    const audiofragmentoStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+
+    const captureAudioFragment = () => {
+      if (mediaRecorder.value && mediaRecorder.value.state === 'recording') {
+        const fragmentRecorder = new MediaRecorder(audiofragmentoStream);
+        
+        fragmentRecorder.ondataavailable = event => {
+          if (event.data.size > 0) {
+            audioFragments.value.push(event.data);
+          }
+        };
+
+        fragmentRecorder.start();
+        setTimeout(() => {
+          fragmentRecorder.stop();  
+        }, fragmentDuration); 
+      }
+    };
+
     const video = document.querySelector('video');
     video.srcObject = videoStream;
     video.play();
@@ -102,6 +156,11 @@ const startRecording = async () => {
         stopRecording(); 
       }
 
+      // Captura audio en los segundos específicos
+      if (fragmentSeconds.includes(totalRecordingTime.value)) {
+        captureAudioFragment();
+      }
+
       // Toma fotos en los segundos específicos
       if ([12, 24, 36, 48, 60].includes(totalRecordingTime.value)) {
         takePhoto();
@@ -120,6 +179,7 @@ const stopRecording = () => {
   paused.value = true; 
   timeRemaining.value = 60;
   recordingCompleted.value = true;
+  audioFragments.value = [];
 };
 
 const toggleRecording = () => {
@@ -170,34 +230,48 @@ const takePhoto = () => {
 };
 
 const processRecording = async () => {
-  var a = document.createElement('a')
   loading.value = true;
-  const audioBlob = new Blob(recordedChunks.value, { type: 'audio/wav' });
-  const audioFile = new File([audioBlob], 'audio_recording.wav', { type: 'audio/wav' });
-  const formData = new FormData();
-  a.href = window.URL.createObjectURL(audioBlob)
-  a.download = 'audio_recording.wav'
-  a.click()
-  formData.append('audio', audioFile);
+
+  const accumulatedEmotions = {
+    "angry": 0,
+    "fearful": 0,
+    "happy": 0,
+    "sad": 0,
+    "neutral": 0,
+    "disgusted": 0,
+    "other": 0
+  };
+  
   try {
     // Petición 1: Enviar solo el audio
 
-    const audioResponse = await emotionApi.post('/predict_audio', formData, {
-      headers: {
-        'Content-Type': null,
-      },
-    });
-    console.log(audioResponse.data);
-    let maxAudioEmotion = {};
-    if (audioResponse.data && Array.isArray(audioResponse.data.predictions)) {
-      maxAudioEmotion = audioResponse.data.predictions.reduce((max, emotion) => {
-        return emotion.probability > max.probability ? emotion : max;
+    // Iterar sobre los fragmentos de audio y hacer una petición por cada uno
+    for (let i = 0; i < audioFragments.value.length; i++) {
+      const audioBlob = new Blob([audioFragments.value[i]], { type: 'audio/wav' });
+      const audioFile = new File([audioBlob], `audio_fragment_${i + 1}.wav`, { type: 'audio/wav' });
+      const formData = new FormData();
+      formData.append('audio', audioFile);
+
+      // Enviar la solicitud a la API para cada fragmento de audio
+      const audioResponse = await emotionApi.post('/predict_audio', formData, {
+        headers: {
+          'Content-Type': null,
+        },
       });
-      console.log('Emoción del audio:', maxAudioEmotion);
-    } else {
-      console.error('No se recibieron predicciones válidas:', audioResponse.data);
-    } 
-    
+
+      // Acumular las probabilidades de cada emoción
+      if (audioResponse.data && Array.isArray(audioResponse.data.predictions)) {
+        audioResponse.data.predictions.forEach(emotion => {
+          accumulatedEmotions[emotion.label] += emotion.probability;
+        });
+      } else {
+        console.error('No se recibieron predicciones válidas para el fragmento:', i + 1, audioResponse.data);
+      }
+    }
+
+    // Seleccionar la emoción con la mayor probabilidad acumulada
+    let maxEmotion = Object.keys(accumulatedEmotions).reduce((a, b) => accumulatedEmotions[a] > accumulatedEmotions[b] ? a : b);
+
     // Petición 2: Enviar solo las fotos
 
     const IMAGE_PATHS = photos.value.map(photo => {
@@ -214,45 +288,81 @@ const processRecording = async () => {
     files.forEach(file => {
       photosFormData.append('images', file);
     });
-    console.log('Imagenes form data', photosFormData)
     const photosResponse = await emotionApi.post('/predict_image', photosFormData, {
       headers: {
       'Content-Type': null, 
       },
     });
-    console.log(photosResponse.data);
+
     let maxPhotoEmotion = {};
+
     if (photosResponse.data && Array.isArray(photosResponse.data.predictions)) {
       maxPhotoEmotion = photosResponse.data.predictions.reduce((max, emotion) => {
         return emotion.probability > max.probability ? emotion : max;
       });
-      console.log('Emoción de las fotos:', maxPhotoEmotion);
     } else {
       console.error('No se recibieron predicciones válidas:', photosResponse.data);
     }
 
-    photos.value.forEach((photo) => {
-    formData.append(photo.name, photo.data);
-  });
+    //Petición 3: Enviar el audio y las fotos
 
-    // Petición 3: Enviar el audio y las fotos
-    /*const combinedResponse = await emotionApi.post('/predict_mult', formData);
-    console.log(combinedResponse);
-    const maxCombinedEmotion = combinedResponse.data.predictions.reduce((max, emotion) => emotion.probability > max.probability ? emotion : max);
-*/
-    //audioEmotions.value = maxAudioEmotion.label;
+    const cbIMAGE_PATHS = photos.value.map(photo => {
+      return fetch(photo.data)
+        .then(res => res.blob())
+        .then(blob => {
+          return new File([blob], photo.name, { type: 'image/png' });
+        });
+    });
+
+    const cbfiles = await Promise.all(cbIMAGE_PATHS);
+    
+    // Iterar sobre los fragmentos de audio de 2 segundos
+    for (let i = 0; i < audioFragments.value.length; i++) {
+      const cbformData = new FormData();
+
+      // Agregar las 5 fotos al FormData
+      cbfiles.forEach((cbfile) => {
+        cbformData.append('images', cbfile); 
+      });
+
+      // Usar el audio correspondiente
+      const audioBlob = new Blob([audioFragments.value[i]], { type: 'audio/wav' });
+      const audioFile = new File([audioBlob], `audio_fragment_${i + 1}.wav`, { type: 'audio/wav' });
+      cbformData.append('audio', audioFile); 
+
+      // Hacer la petición a la API
+      const combinedResponse = await emotionApi.post('/predict_mult', cbformData, {
+        headers: {
+          'Content-Type': null,
+        },
+      });
+
+      // Acumular las probabilidades de cada emoción
+      if (combinedResponse.data && Array.isArray(combinedResponse.data.predictions)) {
+        combinedResponse.data.predictions.forEach(emotion => {
+          if (accumulatedEmotions[emotion.label] !== undefined) {
+            accumulatedEmotions[emotion.label] += emotion.probability;
+          }
+        });
+      } else {
+        console.error('No se recibieron predicciones válidas:', combinedResponse.data);
+      }
+    }
+
+    // Determinar la emoción con la mayor probabilidad acumulada
+    let cbmaxEmotion = Object.keys(accumulatedEmotions).reduce((a, b) => 
+      accumulatedEmotions[a] > accumulatedEmotions[b] ? a : b
+    );
+
+    audioEmotions.value = maxEmotion;
     photoEmotions.value = maxPhotoEmotion.label;
-    //combinedEmotions.value = maxCombinedEmotion.label;
-
-    console.log('Audio emoción:', audioEmotions.value);
-    console.log('Fotos emoción:', photoEmotions.value);
-    //console.log('Combinado emociones:', combinedEmotions.value);
+    combinedEmotions.value = cbmaxEmotion;
+  
   } catch (error) {
     console.error('Error en la clasificación de emociones:', error);
   } finally {
     loading.value = false;
     recordedChunks.value = [];
-    photos.value = [];
   }
 };
 
@@ -309,6 +419,41 @@ html, body {
 
 .btn-separado {
   margin-top: 1rem;
+}
+
+.emotion-results {
+  display: flex;
+  justify-content: space-around;
+  margin-top: 1rem;
+}
+
+.emotion-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 200px;  /* Aumenta el ancho de la caja */
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 10px;
+}
+
+.emotion-image {
+  width: 180px;  /* Tamaño máximo de la imagen */
+  height: 180px;  /* Tamaño máximo de la imagen */
+  object-fit: contain;  /* Evita la distorsión */
+  margin-bottom: 10px;
+}
+
+h4 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: bold;
+  text-align: center;
+}
+
+p {
+  font-size: 0.9rem;
+  text-align: center;
 }
 
 </style>
