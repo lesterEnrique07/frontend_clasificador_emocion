@@ -15,7 +15,8 @@
               <img v-for="(photo, index) in photos" :key="index" :src="photo.data" class="photo"/>
             </div>
             <audio v-if="audioURL" :src="audioURL" controls class="audio"></audio>
-            <v-btn v-if="photos.length === 5 &&  !recording" @click="processRecording" class="bg-green-darken-4 input" dark block>Procesar</v-btn>
+            <v-btn v-if="photos.length === 5 && !recording" @click="processRecording" :disabled="processButtonDisabled" class="bg-green-darken-4 input" dark block>Procesar</v-btn>
+            <v-btn v-if="showSaveButton" @click="saveResults" class="bg-yellow-darken-4 input" dark block>Guardar</v-btn>
             <v-btn @click="cancel" class="bg-blue-grey-darken-4 input" dark block>Cancelar</v-btn>
             <div v-if="audioEmotions || photoEmotions || combinedEmotions" class="emotion-results">
                 <div v-if="audioEmotions" class="emotion-box">
@@ -70,6 +71,9 @@ const recordingCompleted = ref(false);
 const audioFragments = ref([]); 
 const fragmentDuration = 2000;  
 const fragmentSeconds = [10, 22, 34, 46, 58];
+const showSaveButton = ref(false); 
+const savedId = ref(null);
+const processButtonDisabled = ref(false);
 let photoInterval = null;
 let countdownInterval = null;
 let videoStream = null;
@@ -230,6 +234,7 @@ const takePhoto = () => {
 };
 
 const processRecording = async () => {
+  processButtonDisabled.value = true;
   loading.value = true;
 
   const accumulatedEmotions = {
@@ -361,8 +366,31 @@ const processRecording = async () => {
   } catch (error) {
     console.error('Error en la clasificación de emociones:', error);
   } finally {
+    showSaveButton.value = true;
     loading.value = false;
     recordedChunks.value = [];
+  }
+};
+
+const saveResults = async () => {
+  const saveData = {
+    emocion_audio: traducirEmocion(audioEmotions.value),
+    emocion_foto: traducirEmocion(photoEmotions.value),
+    emocion_audio_foto: traducirEmocion(combinedEmotions.value),
+  };
+
+  try {
+    const response = await axios.post('/api/clasificacion/check', saveData, {
+      headers: {
+        Authorization: `Bearer ${authStore.token}`,
+      },
+    });
+
+    const { id } = response.data;
+    savedId.value = id;
+    console.log('ID guardado:', savedId.value);
+  } catch (error) {
+    console.error('Error al guardar los datos:', error);
   }
 };
 
@@ -379,6 +407,7 @@ const cancel = () => {
   paused.value = true; 
   timeRemaining.value = 60; 
   recordingCompleted.value = false;
+  processButtonDisabled.value = false;
 };
 </script>
 

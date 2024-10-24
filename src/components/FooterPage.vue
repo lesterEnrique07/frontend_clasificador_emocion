@@ -16,7 +16,7 @@
           <div class="contact-info">
             <h4>Equipo de desarrollo</h4>
             <ul style="list-style-type: none;">
-              <li>Lester Enrique Pérez Carballedo</li>
+              <li><p>Lester Enrique Pérez Carballedo</p></li>
             </ul>
           </div>
         </v-col>
