@@ -387,8 +387,27 @@ const saveResults = async () => {
     });
 
     const { id } = response.data;
-    savedId.value = id;
-    console.log('ID guardado:', savedId.value);
+
+    // Verificar si el ID es null
+    if (id === null) {
+      // Hacer la petición para crear una nueva clasificación
+      const createResponse = await axios.post('/api/clasificacion', {
+        emocion_audio: traducirEmocion(audioEmotions.value),
+        emocion_foto: traducirEmocion(photoEmotions.value),
+        emocion_audio_foto: traducirEmocion(combinedEmotions.value),
+      }, {
+        headers: {
+          Authorization: `Bearer ${authStore.token}`,
+        },
+      });
+
+      // Extraer el ID de la respuesta
+      savedId.value = createResponse.data.clasificacion.id;
+      console.log('Nueva clasificación creada con ID:', savedId.value);
+    } else {
+      savedId.value = id;
+      console.log('ID guardado:', savedId.value);
+    }
   } catch (error) {
     console.error('Error al guardar los datos:', error);
   }

@@ -14,6 +14,7 @@
                 autofocus
                 class="input"
                 required
+                :error-messages="errors.nombre" 
               ></v-text-field>
               <v-text-field
                 v-model="form.apellido"
@@ -111,17 +112,41 @@ const form = ref({
   password: ''
 });
 
+const errors = ref({
+  nombre: ''
+});
+
 const sexos = ['Masculino', 'Femenino'];
+
+const validateNombre = () => {
+  let error = '';
+  if (!/^[A-Za-z\s]+$/.test(form.value.nombre)) {
+    error = 'El nombre debe ser una cadena de texto.';
+  } else if (form.value.nombre.length > 50) {
+    error = 'El nombre debe tener un máximo de 50 caracteres.';
+  }
+  errors.value.nombre = error;
+  return error === ''; // Retorna si la validación fue exitosa
+};
 
 const calculateFechaNacimiento = (ci) => {
   const year = ci.substring(0, 2);
   const month = ci.substring(2, 4);
   const day = ci.substring(4, 6);
-  const fullYear = year < '25' ? `20${year}` : `19${year}`;
-  return `${day}-${month}-${fullYear}`;
+  const fullYear = year < '25' ? `20${year}` : `19${year};`
+  return `${day}-${month}-${fullYear};`
 };
 
 const handleSubmit = async () => {
+  // Limpiar errores previos
+  errors.value.nombre = '';
+
+  // Validar campo "nombre"
+  if (!validateNombre()) {
+    // Si hay un error, no se realiza la solicitud a la API
+    return;
+  }
+
   loading.value = true;
   try {
     // Registrar en tabla user
