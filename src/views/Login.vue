@@ -37,4 +37,5 @@ const form = ref({
 .input{
     margin-top: 1rem;
 }
+
 </style>

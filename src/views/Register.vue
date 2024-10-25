@@ -7,6 +7,7 @@
           <v-card-title class="bg-success text-white">REGISTER</v-card-title>
           <v-card-text>
             <v-form @submit.prevent="handleSubmit">
+
               <v-text-field
                 v-model="form.nombre"
                 label="Nombre"
@@ -16,6 +17,7 @@
                 required
                 :error-messages="errors.nombre" 
               ></v-text-field>
+
               <v-text-field
                 v-model="form.apellido"
                 label="Apellido"
@@ -23,7 +25,9 @@
                 autofocus
                 class="input"
                 required
+                :error-messages="errors.apellido"
               ></v-text-field>
+
               <v-text-field
                 v-model="form.ci"
                 label="CI"
@@ -31,7 +35,9 @@
                 autofocus
                 class="input"
                 required
+                :error-messages="errors.ci"
               ></v-text-field>
+
                <v-select
                 v-model="form.sexo"
                 :items="sexos"
@@ -40,6 +46,7 @@
                 class="input"
                 required
               ></v-select>
+
               <v-text-field
                 v-model="form.direccion"
                 label="Dirección"
@@ -48,13 +55,16 @@
                 class="input"
                 required
               ></v-text-field>
+
               <v-text-field
                 v-model="form.telefono"
                 label="Teléfono"
                 outlined
                 class="input"
                 required
+                :error-messages="errors.telefono"
               ></v-text-field>
+
               <v-text-field
                 v-model="form.email"
                 label="Email"
@@ -62,7 +72,9 @@
                 prepend-icon="mdi-at"
                 class="input"
                 required
+                :error-messages="errors.email"
               ></v-text-field>
+
               <v-text-field
                 v-model="form.user"
                 label="User"
@@ -71,7 +83,9 @@
                 autofocus
                 class="input"
                 required
+                :error-messages="errors.user"
               ></v-text-field>
+
               <v-text-field
                 v-model="form.password"
                 label="Password"
@@ -80,7 +94,9 @@
                 type="password"
                 class="input"
                 required
+                :error-messages="errors.password"
               ></v-text-field>
+
               <v-btn type="submit" class="bg-blue-grey-darken-4 input" dark block >Crear</v-btn>
               <v-btn to="/login" class="bg-blue-grey-darken-4 input" dark block >Regresar a Login</v-btn>
             </v-form>
@@ -113,7 +129,13 @@ const form = ref({
 });
 
 const errors = ref({
-  nombre: ''
+  nombre: '',
+  apellido: '',
+  ci: '',
+  telefono: '',
+  email: '',
+  user: '',
+  password: ''
 });
 
 const sexos = ['Masculino', 'Femenino'];
@@ -129,37 +151,113 @@ const validateNombre = () => {
   return error === ''; // Retorna si la validación fue exitosa
 };
 
+const validateApellido = () => {
+  let error = '';
+  if (!/^[A-Za-z\s]+$/.test(form.value.apellido)) {
+    error = 'Los apellidos deben ser una cadena de texto.';
+  } else if (form.value.apellido.length > 50) {
+    error = 'Los apellidos deben tener un máximo de 50 caracteres.';
+  }
+  errors.value.apellido = error;
+  return error === '';
+};
+
+const validateCI = () => {
+  let error = '';
+  if (!/^\d{11}$/.test(form.value.ci)) {
+    error = 'El Carné de Identidad debe contener exactamente 11 caracteres y solo números.';
+  }
+  errors.value.ci = error;
+  return error === '';
+};
+
+const validateTelefono = () => {
+  let error = '';
+  if (!/^\d{8}$/.test(form.value.telefono)) {
+    error = 'El teléfono debe tener 8 números y contener solo números.';
+  }
+  errors.value.telefono = error;
+  return error === '';
+};
+
+const validateEmail = () => {
+  let error = '';
+  if (!/^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/.test(form.value.email)) {
+    error = 'El correo debe tener un formato de correo válido.';
+  } else if (form.value.email.length > 100) {
+    error = 'El correo debe tener un máximo de 100 caracteres.';
+  }
+  errors.value.email = error;
+  return error === '';
+};
+
+const validateUser = () => {
+  let error = '';
+  if (!/^[A-Za-z0-9]+$/.test(form.value.user)) {
+    error = 'El usuario debe contener solo caracteres alfanuméricos.';
+  } else if (form.value.user.length < 5) {
+    error = 'El usuario debe tener un mínimo de 5 caracteres.';
+  } else if (form.value.user.length > 20) {
+    error = 'El usuario debe tener un máximo de 20 caracteres.';
+  }
+  errors.value.user = error;
+  return error === '';
+};
+
+const validatePassword = () => {
+  let error = '';
+  if (!/^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#])[A-Za-z\d@$!%*?&#]{8}$/.test(form.value.password)) {
+    error = 'La contraseña debe contener exactamente 8 caracteres, al menos una letra mayúscula, un dígito y un carácter especial.';
+  }
+  errors.value.password = error;
+  return error === '';
+};
+
 const calculateFechaNacimiento = (ci) => {
   const year = ci.substring(0, 2);
   const month = ci.substring(2, 4);
   const day = ci.substring(4, 6);
-  const fullYear = year < '25' ? `20${year}` : `19${year};`
-  return `${day}-${month}-${fullYear};`
+  const fullYear = year < '25' ? `20${year}` : `19${year}`;
+  return `${fullYear}-${month}-${day}`; 
 };
 
 const handleSubmit = async () => {
   // Limpiar errores previos
-  errors.value.nombre = '';
+  errors.value = {
+    nombre: '',
+    apellido: '',
+    ci: '',
+    telefono: '',
+    email: '',
+    user: '',
+    password: ''
+  };
 
-  // Validar campo "nombre"
-  if (!validateNombre()) {
-    // Si hay un error, no se realiza la solicitud a la API
+  // Validar campos
+  const isNombreValid = validateNombre();
+  const isApellidoValid = validateApellido();
+  const isCIValid = validateCI();
+  const isTelefonoValid = validateTelefono();
+  const isEmailValid = validateEmail();
+  const isUserValid = validateUser();
+  const isPasswordValid = validatePassword();
+
+  if (!isNombreValid || !isApellidoValid || !isCIValid || !isTelefonoValid || !isEmailValid || !isUserValid || !isPasswordValid) {
+    // No hacer la solicitud si alguna validación falla
     return;
   }
 
   loading.value = true;
   try {
-    // Registrar en tabla user
+    // Registro en la API
     await axios.post('/api/auth/register', {
       name: form.value.user,
       email: form.value.email,
       password: form.value.password
     });
 
-    // Calcular fecha de nacimiento
     const fechaNacimiento = calculateFechaNacimiento(form.value.ci);
 
-    // Registrar en tabla paciente
     await axios.post('/api/paciente', {
       nombre: form.value.nombre,
       apellido: form.value.apellido,
@@ -170,10 +268,10 @@ const handleSubmit = async () => {
       telefono: form.value.telefono,
       correo: form.value.email,
       usuario: form.value.user,
-      contrasena: form.value.password   
+      contrasena: form.value.password
     });
   } catch (error) {
-    console.error('Error al registrar:', error);
+    console.error('Error al registrar:', error.response ? error.response.data : error);
   } finally {
     loading.value = false;
   }

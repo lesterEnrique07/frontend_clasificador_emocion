@@ -58,6 +58,7 @@ export default {
 .principal {
   background-color: rgb(211, 211, 211);
   width: 100%;
+  padding: 2rem 0;
 
 }
 
