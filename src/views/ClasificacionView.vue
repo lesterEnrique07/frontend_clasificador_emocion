@@ -16,8 +16,8 @@
             </div>
             <audio v-if="audioURL" :src="audioURL" controls class="audio"></audio>
             <v-btn v-if="photos.length === 5 && !recording" @click="processRecording" :disabled="processButtonDisabled" class="bg-green-darken-4 input" dark block>Procesar</v-btn>
-            <v-btn v-if="showSaveButton" @click="saveResults" class="bg-yellow-darken-4 input" dark block>Guardar</v-btn>
-            <v-btn @click="cancel" class="bg-blue-grey-darken-4 input" dark block>Cancelar</v-btn>
+            <v-btn v-if="showSaveButton && photos.length === 5 && !recording" @click="saveResults" class="bg-yellow-darken-4 input" dark block :disabled="saveButtonDisabled">Guardar</v-btn>
+            <v-btn @click="resetOrCancel" class="bg-blue-grey-darken-4 input" dark block>{{ cancelButtonLabel }}</v-btn>
             <div v-if="audioEmotions || photoEmotions || combinedEmotions" class="emotion-results">
                 <div v-if="audioEmotions" class="emotion-box">
                   <img :src="getEmotionImage(audioEmotions)" alt="Emoción del Audio" class="emotion-image" />
@@ -74,6 +74,8 @@ const fragmentSeconds = [10, 22, 34, 46, 58];
 const showSaveButton = ref(false); 
 const savedId = ref(null);
 const processButtonDisabled = ref(false);
+const saveButtonDisabled = ref(false);
+const cancelButtonLabel = ref("Cancelar");
 let photoInterval = null;
 let countdownInterval = null;
 let videoStream = null;
@@ -373,6 +375,8 @@ const processRecording = async () => {
 };
 
 const saveResults = async () => {
+
+  saveButtonDisabled.value = true;
   const saveData = {
     emocion_audio: traducirEmocion(audioEmotions.value),
     emocion_foto: traducirEmocion(photoEmotions.value),
@@ -404,12 +408,25 @@ const saveResults = async () => {
       // Extraer el ID de la respuesta
       savedId.value = createResponse.data.clasificacion.id;
       console.log('Nueva clasificación creada con ID:', savedId.value);
+      cancelButtonLabel.value = "Reiniciar";
     } else {
       savedId.value = id;
       console.log('ID guardado:', savedId.value);
+
+      cancelButtonLabel.value = "Reiniciar";
     }
   } catch (error) {
     console.error('Error al guardar los datos:', error);
+  }
+};
+
+const resetOrCancel = () => {
+  if (cancelButtonLabel.value === "Reiniciar") {
+    // Restablecer el formulario al estado inicial
+    cancel();
+    cancelButtonLabel.value = "Cancelar";
+  } else {
+    cancel();
   }
 };
 
@@ -427,6 +444,8 @@ const cancel = () => {
   timeRemaining.value = 60; 
   recordingCompleted.value = false;
   processButtonDisabled.value = false;
+  saveButtonDisabled.value = false;
+  showSaveButton.value = false;
 };
 </script>
 
