@@ -51,6 +51,7 @@ import { useRouter } from 'vue-router';
 import LoadingPage from "../components/LoadingPage.vue";
 import axios from 'axios';
 import { emotionApi } from '../axiosInstances';
+import { supabase } from '@/supabaseClient';
 
 
 const authStore = useAuthStore();
@@ -76,6 +77,8 @@ const savedId = ref(null);
 const processButtonDisabled = ref(false);
 const saveButtonDisabled = ref(false);
 const cancelButtonLabel = ref("Cancelar");
+const audioURLSupabase = ref('');
+const photoURLsSupabase = ref([]);
 let photoInterval = null;
 let countdownInterval = null;
 let videoStream = null;
@@ -435,6 +438,70 @@ const saveResults = async () => {
 
     const sesionId = sesionResponse.data.sesion.id;
     console.log('ID de la nueva sesión creada:', sesionId);
+
+    // Subir el audio grande grabado a Supabase
+    const audioBlob = new Blob(recordedChunks.value, { type: 'audio/wav' });
+    const audioFileName = `audio_${Date.now()}.wav`;
+    const { error: audioError } = await supabase.storage
+      .from('almacen')
+      .upload(audioFileName, audioBlob);
+
+    if (audioError) {
+      console.error('Error al subir el audio a Supabase:', audioError);
+      return;
+    }
+
+    // Guardar la URL del audio en la variable
+    audioURLSupabase.value = supabase.storage.from('almacen').getPublicUrl(audioFileName).data.publicUrl;
+    console.log('url del audio:', audioURLSupabase.value);
+
+    // Guardar el audio en la base de datos
+    const audioResponse = await axios.post('/api/multimedia', {
+      nombre: `audio_${Date.now()}.wav`,
+      tipo: "Audio",
+      direccion_url: audioURLSupabase.value,
+      sesion_id: sesionId
+    }, {
+      headers: {
+        Authorization: `Bearer ${authStore.token}`,
+      },
+    });
+
+    const audioId = audioResponse.data.multimedia.id;
+
+    // Subir las fotos a Supabase
+    for (const [index, photo] of photos.value.entries()) {
+      const photoBlob = await fetch(photo.data).then(res => res.blob());
+      const photoFileName = `photo_${index + 1}_${Date.now()}.png`;
+      const { error: photoError } = await supabase.storage
+        .from('almacen')
+        .upload(photoFileName, photoBlob);
+
+      if (photoError) {
+        console.error('Error al subir la foto a Supabase:', photoError);
+        return;
+      }
+
+      // Guardar la URL de cada foto en el array
+      photoURLsSupabase.value.push(supabase.storage.from('almacen').getPublicUrl(photoFileName).data.publicUrl);
+
+      // Guardar cada foto en la base de datos
+      const photoResponse = await axios.post('/api/multimedia', {
+        nombre: `photo_${index + 1}_${Date.now()}.png`,
+        tipo: "Foto",
+        direccion_url: photoURLsSupabase.value[index],
+        sesion_id: sesionId
+      }, {
+      headers: {
+        Authorization: `Bearer ${authStore.token}`,
+      },
+    });
+
+      const photoId = photoResponse.data.multimedia.id;
+      console.log(`ID de foto ${index + 1} guardado:`, photoId);
+    }
+    console.log('ID de audio guardado:', audioId);
+    console.log('url de las fotos:', photoURLsSupabase.value);
 
     cancelButtonLabel.value = "Reiniciar";
   } catch (error) {
