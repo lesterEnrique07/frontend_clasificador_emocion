@@ -145,6 +145,7 @@ const startRecording = async () => {
     mediaRecorder.value.onstop = () => {
       clearInterval(countdownInterval);
       const blob = new Blob(recordedChunks.value, { type: 'audio/wav' });
+      const uniqueAudioName = `audio_${Date.now()}.wav`;
       audioURL.value = URL.createObjectURL(blob);
     };
 
@@ -231,7 +232,7 @@ const takePhoto = () => {
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
     canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
-    const photoName = `photo_${photos.value.length + 1}.png`;
+    const photoName = `photo_${Date.now()}_${photos.value.length + 1}.png`;
     photos.value.push({ name: photoName, data: canvas.toDataURL('image/png') });
 };
 
@@ -408,13 +409,34 @@ const saveResults = async () => {
       // Extraer el ID de la respuesta
       savedId.value = createResponse.data.clasificacion.id;
       console.log('Nueva clasificación creada con ID:', savedId.value);
-      cancelButtonLabel.value = "Reiniciar";
     } else {
       savedId.value = id;
-      console.log('ID guardado:', savedId.value);
-
-      cancelButtonLabel.value = "Reiniciar";
+      console.log('ID guardado:', savedId.value);  
     }
+
+    const pacienteResponse = await axios.get(`/api/paciente/${authStore.authUser.name}`, {
+      headers: {
+        Authorization: `Bearer ${authStore.token}`,
+      },
+    });
+
+    const pacienteId = pacienteResponse.data.id;
+    console.log('ID del paciente obtenido:', pacienteId);
+
+    // Crear una nueva sesión con los IDs de paciente y clasificación
+    const sesionResponse = await axios.post('/api/sesion', {
+      paciente_id: pacienteId,
+      clasificacion_id: savedId.value,
+    }, {
+      headers: {
+        Authorization: `Bearer ${authStore.token}`,
+      },
+    });
+
+    const sesionId = sesionResponse.data.sesion.id;
+    console.log('ID de la nueva sesión creada:', sesionId);
+
+    cancelButtonLabel.value = "Reiniciar";
   } catch (error) {
     console.error('Error al guardar los datos:', error);
   }
