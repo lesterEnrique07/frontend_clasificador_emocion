@@ -381,6 +381,7 @@ const processRecording = async () => {
 const saveResults = async () => {
 
   saveButtonDisabled.value = true;
+  loading.value = true;
   const saveData = {
     emocion_audio: traducirEmocion(audioEmotions.value),
     emocion_foto: traducirEmocion(photoEmotions.value),
@@ -504,6 +505,7 @@ const saveResults = async () => {
     console.log('url de las fotos:', photoURLsSupabase.value);
 
     cancelButtonLabel.value = "Reiniciar";
+    loading.value = false;
   } catch (error) {
     console.error('Error al guardar los datos:', error);
   }

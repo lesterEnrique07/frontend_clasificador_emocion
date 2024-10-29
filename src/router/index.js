@@ -2,6 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import { useAuthStore } from '@/store/auth'
 import HomeView from '../views/HomeView.vue'
 import ClasificacionView from '../views/ClasificacionView.vue'
+import RegistrosView from '../views/RegistrosView.vue'
 import CourseView from '../views/CourseView.vue'
 import EditionView from '../views/EditionView.vue'
 import PerfilView from '../views/PerfilView.vue'
@@ -31,7 +32,7 @@ const routes = [
   {
     path: '/registros',
     name: 'registros',
-    component: CourseView
+    component: RegistrosView
   },
   {
     path: '/estadisticas',
