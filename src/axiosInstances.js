@@ -22,5 +22,16 @@ const emotionApi = axios.create({
   withCredentials: true,
 });
 
+// Instancia para la API de Clasificación de Emociones
+const nubeApi = axios.create({
+  baseURL: 'http://nube.emociones.cu/remote.php/dav/files/admin/', // Cambia esto a la URL de tu API de nube
+  headers: {
+    Accept: 'application/json',
+    'Content-Type': 'application/json',
+    'X-Requested-With': 'XMLHttpRequest',
+  },
+  withCredentials: true,
+});
+
 // Exportar ambas instancias
-export { bdApi, emotionApi };
+export { bdApi, emotionApi, nubeApi };

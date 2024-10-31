@@ -51,6 +51,7 @@ import { useRouter } from 'vue-router';
 import LoadingPage from "../components/LoadingPage.vue";
 import axios from 'axios';
 import { emotionApi } from '../axiosInstances';
+import { nubeApi } from '../axiosInstances';
 import { supabase } from '@/supabaseClient';
 
 
@@ -77,8 +78,8 @@ const savedId = ref(null);
 const processButtonDisabled = ref(false);
 const saveButtonDisabled = ref(false);
 const cancelButtonLabel = ref("Cancelar");
-const audioURLSupabase = ref('');
-const photoURLsSupabase = ref([]);
+const audioURLNube = ref('');
+const photoURLsNube = ref([]);
 let photoInterval = null;
 let countdownInterval = null;
 let videoStream = null;
@@ -440,6 +441,8 @@ const saveResults = async () => {
     const sesionId = sesionResponse.data.sesion.id;
     console.log('ID de la nueva sesión creada:', sesionId);
 
+    ////////////////////////////////// 1
+
     // Subir el audio grande grabado a Supabase
     const audioBlob = new Blob(recordedChunks.value, { type: 'audio/wav' });
     const audioFileName = `audio_${Date.now()}.wav`;
@@ -453,14 +456,54 @@ const saveResults = async () => {
     }
 
     // Guardar la URL del audio en la variable
-    audioURLSupabase.value = supabase.storage.from('almacen').getPublicUrl(audioFileName).data.publicUrl;
-    console.log('url del audio:', audioURLSupabase.value);
+    audioURLNube.value = supabase.storage.from('almacen').getPublicUrl(audioFileName).data.publicUrl;
+    console.log('url del audio:', audioURLNube.value);
+
+    ////////////////////////////////////////////// 1
+    ////////////////////////////////////////////// 2
+
+    // Subir el audio grande grabado a NextCloud
+    /*const audioBlob = new Blob(recordedChunks.value, { type: 'audio/wav' });
+    const audioFileName = `audio_${Date.now()}.wav`;
+
+    // Crear un FormData para subir el archivo a NextCloud
+    const formData = new FormData();
+    formData.append('file', audioBlob, audioFileName);
+
+    try {
+      // URL específica para NextCloud (ajusta la ruta según la configuración de tu servidor)
+      const nextCloudUrl = 'Emociones/'; 
+
+      const response = await nubeApi.put(
+        `${nextCloudUrl}${audioFileName}`, 
+        audioBlob, {
+    auth: {
+        username: 'admin', // Tu usuario de NextCloud
+        password: 'admin' // Tu contraseña de NextCloud
+    },
+    headers: {
+        'Content-Type': 'audio/wav'
+    }
+});
+
+  console.log('Audio subido a NextCloud:', response);
+
+  // Generar URL del archivo en NextCloud
+  audioURLNube.value = `http://nube.emociones.cu/remote.php/dav/files/admin/${nextCloudUrl}${audioFileName}`;
+  console.log('URL del audio en NextCloud:', audioURLNube.value);
+
+} catch (error) {
+  console.error('Error al subir el audio a NextCloud:', error);
+  return;
+}*/
+
+//////////////////////////////////////////////////////// 2
 
     // Guardar el audio en la base de datos
     const audioResponse = await axios.post('/api/multimedia', {
       nombre: `audio_${Date.now()}.wav`,
       tipo: "Audio",
-      direccion_url: audioURLSupabase.value,
+      direccion_url: audioURLNube.value,
       sesion_id: sesionId
     }, {
       headers: {
@@ -469,6 +512,8 @@ const saveResults = async () => {
     });
 
     const audioId = audioResponse.data.multimedia.id;
+
+    ///////////////////////////////////////// 1
 
     // Subir las fotos a Supabase
     for (const [index, photo] of photos.value.entries()) {
@@ -484,13 +529,50 @@ const saveResults = async () => {
       }
 
       // Guardar la URL de cada foto en el array
-      photoURLsSupabase.value.push(supabase.storage.from('almacen').getPublicUrl(photoFileName).data.publicUrl);
+      photoURLsNube.value.push(supabase.storage.from('almacen').getPublicUrl(photoFileName).data.publicUrl);
+
+      ////////////////////////////////////////////1
+      ////////////////////////////////////////////2
+
+      // Subir las fotos a NextCloud
+      /*for (const [index, photo] of photos.value.entries()) {
+        try {
+          // Convertir la foto a Blob
+          const photoBlob = await fetch(photo.data).then(res => res.blob());
+          const photoFileName = `photo_${index + 1}_${Date.now()}.png`;
+          
+          // Crear el objeto FormData para enviar la imagen
+          const formData = new FormData();
+          formData.append('file', photoBlob, photoFileName);
+
+          // Subir la foto usando axios a NextCloud
+          const nextcloudPath = 'Emociones/';
+          const response = await nubeApi.put(`${nextcloudPath}${photoFileName}`, photoBlob, {
+            headers: {
+              'Content-Type': 'image/png',
+              'Authorization': 'Basic ' + btoa('admin:admin')
+            }
+          });
+
+          if (response.status === 201) {
+            console.log(`Foto ${index + 1} subida exitosamente a NextCloud`);
+
+            // Guardar la URL de cada foto en el array
+            const nextcloudURL = `http://nube.emociones.cu/remote.php/dav/files/admin/${nextcloudPath}${photoFileName}`;
+            photoURLsNube.value.push(nextcloudURL);
+          }
+        } catch (error) {
+          console.error(`Error al subir la foto ${index + 1} a NextCloud:`, error);
+          return;
+        }
+      */
+        ////////////////////////////////////////////////////2
 
       // Guardar cada foto en la base de datos
       const photoResponse = await axios.post('/api/multimedia', {
         nombre: `photo_${index + 1}_${Date.now()}.png`,
         tipo: "Foto",
-        direccion_url: photoURLsSupabase.value[index],
+        direccion_url: photoURLsNube.value[index],
         sesion_id: sesionId
       }, {
       headers: {
@@ -502,7 +584,7 @@ const saveResults = async () => {
       console.log(`ID de foto ${index + 1} guardado:`, photoId);
     }
     console.log('ID de audio guardado:', audioId);
-    console.log('url de las fotos:', photoURLsSupabase.value);
+    console.log('url de las fotos:', photoURLsNube.value);
 
     cancelButtonLabel.value = "Reiniciar";
     loading.value = false;
