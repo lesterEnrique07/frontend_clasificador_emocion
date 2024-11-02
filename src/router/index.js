@@ -7,6 +7,7 @@ import CourseView from '../views/CourseView.vue'
 import EditionView from '../views/EditionView.vue'
 import PerfilView from '../views/PerfilView.vue'
 import AboutUsView from '../views/AboutUsView.vue'
+import RevisionView from '../views/RevisionView.vue'
 
 const routes = [
   {
@@ -48,6 +49,12 @@ const routes = [
     path: '/about',
     name: 'about',
     component: AboutUsView
+  },
+  {
+    path: '/revision/:id',
+    name: 'revision',
+    component: RevisionView,
+    props: true
   }
 ]
 const router = createRouter({

@@ -47,7 +47,6 @@ const getEmotionImage = (emotion) => {
     "Tristeza": require('@/assets/6-Tristeza.jpg'),
     "Neutralidad": require('@/assets/5-Neutralidad.jpg'),
     "Asco": require('@/assets/1-Asco.jpg'),
-    "Neutralidad": require('@/assets/5-Neutralidad.jpg'),
   };
   return emotionImages[emotion];
 };
@@ -86,6 +85,7 @@ const fetchSesions = async () => {
           sesion.emocion_audio = clasificacionResponse.data.emocion_audio;
           sesion.emocion_foto = clasificacionResponse.data.emocion_foto;
           sesion.emocion_audio_foto = clasificacionResponse.data.emocion_audio_foto;
+          sesion.id = sesion.sesion_id;
 
           loading.value = false;
 
@@ -102,8 +102,7 @@ const fetchSesions = async () => {
 };
 
 const revisarSesion = (id) => {
-  // Navegar a la página de revisión para este ID de sesión
-  router.push({ name: 'RevisarSesion', params: { id } });
+  router.push({ name: 'revision', params: { id } });
 };
 
 const formatDate = (date) => {
