@@ -3,7 +3,7 @@
   <div class="main-content">
     <v-container class="mt-5">
       <v-row justify="center">
-        <v-col cols="12" sm="10" md="8">
+        <v-col cols="16" sm="12" md="10">
           <v-card class="border border-primary">
             <v-card-title class="bg-success text-white">Estadísticas</v-card-title>
             <div v-for="(registro, index) in estadisticas" :key="index" class="registro-card">
@@ -115,6 +115,9 @@ const getEmotionImage = (emotion) => {
 // Función para obtener la emoción más común desde la API
 const fetchMostCommonEmotion = async () => {
   try {
+
+    loading.value = true;
+
     const pacienteResponse = await axios.get(`/api/paciente/${authStore.authUser.name}`, {
       headers: { Authorization: `Bearer ${authStore.token}` },
     });
@@ -128,6 +131,9 @@ const fetchMostCommonEmotion = async () => {
     estadisticas.value[0].emocion_audio_cantidad = response.data.emocion_audio.cantidad;
     estadisticas.value[0].emocion_foto_cantidad = response.data.emocion_foto.cantidad;
     estadisticas.value[0].emocion_audio_foto_cantidad = response.data.emocion_audio_foto.cantidad;
+
+    loading.value = false;
+
   } catch (error) {
     console.error('Error fetching most common emotion:', error);
   }
@@ -136,6 +142,9 @@ const fetchMostCommonEmotion = async () => {
 // Función para obtener la distribución de emociones desde la API
 const fetchEmotionDistribution = async () => {
   try {
+
+    loading.value = true;
+
     const pacienteResponse = await axios.get(`/api/paciente/${authStore.authUser.name}`, {
       headers: { Authorization: `Bearer ${authStore.token}` },
     });
@@ -152,6 +161,8 @@ const fetchEmotionDistribution = async () => {
 
     estadisticas.value[1].emocion_distribucion[2] = Object.entries(response.data.emocion_audio_foto)
       .sort((a, b) => b[1] - a[1]);
+
+    loading.value = false;
     
   } catch (error) {
     console.error('Error fetching emotion distribution:', error);
@@ -161,6 +172,9 @@ const fetchEmotionDistribution = async () => {
 // Función para obtener la distribución de emociones desde la API
 const fetchEmotionDiversity = async () => {
   try {
+
+    loading.value = true;
+
     const pacienteResponse = await axios.get(`/api/paciente/${authStore.authUser.name}`, {
       headers: { Authorization: `Bearer ${authStore.token}` },
     });
@@ -177,6 +191,9 @@ const fetchEmotionDiversity = async () => {
 
     estadisticas.value[2].emocion_diversidad[2] = Object.entries(response.data.emocion_audio_foto)
       .sort((a, b) => b[1] - a[1]);
+
+    loading.value = false;
+    
   } catch (error) {
     console.error('Error fetching emotion distribution:', error);
   }
@@ -228,7 +245,7 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   align-items: center;
-  margin: 0 5px;
+  margin: 0 10px;
 }
 
 .emotion-row {
