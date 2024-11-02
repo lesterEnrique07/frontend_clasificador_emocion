@@ -3,11 +3,10 @@ import { useAuthStore } from '@/store/auth'
 import HomeView from '../views/HomeView.vue'
 import ClasificacionView from '../views/ClasificacionView.vue'
 import RegistrosView from '../views/RegistrosView.vue'
-import CourseView from '../views/CourseView.vue'
-import EditionView from '../views/EditionView.vue'
+import RevisionView from '../views/RevisionView.vue'
+import EstadisticasView from '../views/EstadisticasView.vue'
 import PerfilView from '../views/PerfilView.vue'
 import AboutUsView from '../views/AboutUsView.vue'
-import RevisionView from '../views/RevisionView.vue'
 
 const routes = [
   {
@@ -38,7 +37,7 @@ const routes = [
   {
     path: '/estadisticas',
     name: 'estadisticas',
-    component: EditionView
+    component: EstadisticasView
   },
   {
     path: '/perfil',
