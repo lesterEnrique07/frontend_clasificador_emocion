@@ -56,7 +56,7 @@
                                 <!-- Ajustado para desestructurar el par [emotion, count] correctamente -->
                                 <div v-for="([emotion, count], emotionIndex) in row" :key="emotionIndex" class="emotion-container">
                                     <img :src="getEmotionImage(emotion)" class="emotion-image" />
-                                    <p style="text-align: center;">{{ emotion }} - {{ count }}%</p> <!-- Nombre de la emoción y su conteo -->
+                                    <p style="text-align: center;">{{ emotion }} - {{ formatCount(count) }}%</p> <!-- Nombre de la emoción y su conteo -->
                                 </div>
                             </div>
                         </div>
@@ -110,6 +110,10 @@ const getEmotionImage = (emotion) => {
     "Asco": require('@/assets/1-Asco.jpg'),
   };
   return emotionImages[emotion];
+};
+
+const formatCount = (count) => {
+  return count % 1 === 0 ? count : count.toFixed(2);
 };
 
 // Función para obtener la emoción más común desde la API

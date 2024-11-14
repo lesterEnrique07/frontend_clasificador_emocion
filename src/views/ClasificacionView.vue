@@ -67,7 +67,7 @@ const timeRemaining = ref(60);
 const totalRecordingTime = ref(0);
 const audioURL = ref('');
 const recordingCompleted = ref(false);
-const audioFragments = ref([]); 
+const audioFragments = ref([]);
 const fragmentDuration = 2000;  
 const fragmentSeconds = [10, 22, 34, 46, 58];
 const showSaveButton = ref(false); 
@@ -92,8 +92,9 @@ const traducirEmocion = (emocionIngles) => {
     "fearful": "Miedo",
     "happy": "Felicidad",
     "sad": "Tristeza",
-    "neutral": "Neutralidad",
     "disgusted": "Asco",
+    "neutral": "Neutralidad",
+    "surprise": "Neutralidad",
     "other": "Neutralidad"
   };
   return emocionesTraduccion[emocionIngles] || emocionIngles;
@@ -105,8 +106,9 @@ const getEmotionImage = (emotion) => {
     "fearful": require('@/assets/4-Miedo.jpg'),
     "happy": require('@/assets/2-Felicidad.jpg'),
     "sad": require('@/assets/6-Tristeza.jpg'),
-    "neutral": require('@/assets/5-Neutralidad.jpg'),
     "disgusted": require('@/assets/1-Asco.jpg'),
+    "neutral": require('@/assets/5-Neutralidad.jpg'),
+    "surprise": require('@/assets/5-Neutralidad.jpg'),
     "other": require('@/assets/5-Neutralidad.jpg'),
   };
   return emotionImages[emotion];
@@ -119,22 +121,22 @@ const startRecording = async () => {
     const audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
     const audiofragmentoStream = await navigator.mediaDevices.getUserMedia({ audio: true });
 
-    const captureAudioFragment = () => {
-      if (mediaRecorder.value && mediaRecorder.value.state === 'recording') {
-        const fragmentRecorder = new MediaRecorder(audiofragmentoStream);
-        
-        fragmentRecorder.ondataavailable = event => {
-          if (event.data.size > 0) {
-            audioFragments.value.push(event.data);
-          }
-        };
+    const fragmentRecorder = new MediaRecorder(audiofragmentoStream);
 
-        fragmentRecorder.start();
-        setTimeout(() => {
-          fragmentRecorder.stop();  
-        }, fragmentDuration); 
-      }
-    };
+    fragmentRecorder.ondataavailable = event => {
+    if (event.data.size > 0) {
+      audioFragments.value.push(event.data);
+    }
+  };
+
+  const captureAudioFragment = () => {
+    if (mediaRecorder.value && mediaRecorder.value.state === 'recording') {
+      fragmentRecorder.start();
+      setTimeout(() => {
+        fragmentRecorder.stop();  
+      }, fragmentDuration);
+    }
+  };
 
     const video = document.querySelector('video');
     video.srcObject = videoStream;
@@ -152,6 +154,7 @@ const startRecording = async () => {
       const blob = new Blob(recordedChunks.value, { type: 'audio/wav' });
       audioURL.value = URL.createObjectURL(blob);
       audioFullBlob.value = blob;
+      ("Grabación completa. Fragmentos de audio:", audioFragments.value);
     };
 
     mediaRecorder.value.start();
@@ -192,7 +195,7 @@ const stopRecording = () => {
   paused.value = true; 
   timeRemaining.value = 60;
   recordingCompleted.value = true;
-  audioFragments.value = [];
+  
 };
 
 const toggleRecording = () => {
@@ -255,11 +258,23 @@ const processRecording = async () => {
     "disgusted": 0,
     "other": 0
   };
+
+  const accumulatedEmotions2 = {
+    "angry": 0,
+    "disgusted": 0,
+    "fearful": 0,
+    "happy": 0,
+    "sad": 0,
+    "surprise":0,
+    "neutral": 0,
+    "other": 0
+  };
   
   try {
     // Petición 1: Enviar solo el audio
 
     // Iterar sobre los fragmentos de audio y hacer una petición por cada uno
+
     for (let i = 0; i < audioFragments.value.length; i++) {
       const audioBlob = new Blob([audioFragments.value[i]], { type: 'audio/wav' });
       const audioFile = new File([audioBlob], `audio_fragment_${i + 1}.wav`, { type: 'audio/wav' });
@@ -354,8 +369,8 @@ const processRecording = async () => {
       // Acumular las probabilidades de cada emoción
       if (combinedResponse.data && Array.isArray(combinedResponse.data.predictions)) {
         combinedResponse.data.predictions.forEach(emotion => {
-          if (accumulatedEmotions[emotion.label] !== undefined) {
-            accumulatedEmotions[emotion.label] += emotion.probability;
+          if (accumulatedEmotions2[emotion.label] !== undefined) {
+            accumulatedEmotions2[emotion.label] += emotion.probability;
           }
         });
       } else {
@@ -364,8 +379,8 @@ const processRecording = async () => {
     }
 
     // Determinar la emoción con la mayor probabilidad acumulada
-    let cbmaxEmotion = Object.keys(accumulatedEmotions).reduce((a, b) => 
-      accumulatedEmotions[a] > accumulatedEmotions[b] ? a : b
+    let cbmaxEmotion = Object.keys(accumulatedEmotions2).reduce((a, b) => 
+      accumulatedEmotions2[a] > accumulatedEmotions2[b] ? a : b
     );
 
     audioEmotions.value = maxEmotion;
@@ -553,6 +568,7 @@ const cancel = () => {
   processButtonDisabled.value = false;
   saveButtonDisabled.value = false;
   showSaveButton.value = false;
+  audioFragments.value = [];
 };
 </script>
 
