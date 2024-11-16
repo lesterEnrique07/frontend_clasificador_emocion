@@ -5,7 +5,7 @@
       <v-row justify="center">
         <v-col cols="12" sm="10" md="8">
           <v-card class="border border-success">
-            <v-card-title class="bg-success text-white">Revisión de Emociones</v-card-title>
+            <v-card-title class="bg-success text-white">{{ $t("Revisión de Emociones") }}</v-card-title>
             <v-card-text>
               <v-progress-circular v-if="loading" indeterminate></v-progress-circular>
 
@@ -15,23 +15,23 @@
 
               <audio v-if="!loading && multimedias[0]?.direccion_url" :src="multimedias[0].direccion_url" controls class="audio"></audio>
 
-              <v-btn @click="regresar" class="bg-blue-grey-darken-4 input" dark block>Regresar</v-btn>
+              <v-btn @click="regresar" class="bg-blue-grey-darken-4 input" dark block>{{ $t("Regresar") }}</v-btn>
 
               <div v-if="!loading && (audioEmotions || photoEmotions || combinedEmotions)" class="emotion-results">
                 <div v-if="audioEmotions" class="emotion-box">
                   <img :src="getEmotionImage(audioEmotions)" alt="Emoción del Audio" class="emotion-image" />
-                  <h4>Emoción del Audio</h4>
-                  <p>{{ audioEmotions }}</p>
+                  <h4>{{ $t("Emoción del Audio") }}</h4>
+                  <p>{{ translateE(audioEmotions) }}</p>
                 </div>
                 <div v-if="photoEmotions" class="emotion-box">
                   <img :src="getEmotionImage(photoEmotions)" alt="Emoción de las Fotos" class="emotion-image" />
-                  <h4>Emoción de las Fotos</h4>
-                  <p>{{ photoEmotions }}</p>
+                  <h4>{{ $t("Emoción de las Fotos") }}</h4>
+                  <p>{{ translateE(photoEmotions) }}</p>
                 </div>
                 <div v-if="combinedEmotions" class="emotion-box">
                   <img :src="getEmotionImage(combinedEmotions)" alt="Emoción Combinado" class="emotion-image" />
-                  <h4>Emoción Combinado</h4>
-                  <p>{{ combinedEmotions }}</p>
+                  <h4>{{ $t("Emoción Combinado") }}</h4>
+                  <p>{{ translateE(combinedEmotions) }}</p>
                 </div>
               </div>
 
@@ -51,6 +51,7 @@ import { useRouter, useRoute } from 'vue-router';
 import LoadingPage from "../components/LoadingPage.vue";
 import axios from 'axios';
 import { defineProps } from 'vue';
+import { useI18n } from "vue-i18n";
 
 const authStore = useAuthStore();
 const router = useRouter();
@@ -60,6 +61,7 @@ const audioEmotions = ref(null);
 const photoEmotions = ref(null);
 const combinedEmotions = ref(null);
 const multimedias = ref([]);
+const { t } = useI18n(); // Usa t en lugar de $t
 
 const props = defineProps({
   id: {
@@ -137,6 +139,16 @@ const getEmotionImage = (emotion) => {
     "Asco": require('@/assets/1-Asco.jpg'),
   };
   return emotionImages[emotion];
+};
+
+const translateE = (emotion) => {
+  if (emotion === 'Asco') return t("Asco");
+  if (emotion === 'Felicidad') return t("Felicidad");
+  if (emotion === 'Ira') return t("Ira");
+  if (emotion === 'Miedo') return t("Miedo");
+  if (emotion === 'Neutralidad') return t("Neutralidad");
+  if (emotion === 'Tristeza') return t("Tristeza");
+  return emotion; // Default in case the value is different
 };
 
 const regresar = () => {

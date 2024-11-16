@@ -5,25 +5,25 @@
       <v-row justify="center">
         <v-col cols="16" sm="12" md="10">
           <v-card class="border border-primary">
-            <v-card-title class="bg-success text-white">Estadísticas</v-card-title>
+            <v-card-title class="bg-success text-white">{{ $t("Estadísiticas") }}</v-card-title>
             <div v-for="(registro, index) in estadisticas" :key="index" class="registro-card">
               <div class="registro-info">
                 <p class="registro-date" style="text-align: center;">
-                  {{registro.fecha }}
+                  {{ translate(registro.fecha) }}
                 </p>
                 <div :class="['emotions-images', { 'horizontal': index === 0 }]">
                   <template v-if="index === 0">
                     <div class="emotion-container">
                       <img :src="getEmotionImage(registro.emocion_audio)" alt="Emoción del Audio" class="emotion-image" />
-                      <p><b>Emoción del Audio:</b> {{ registro.emocion_audio }} <br> <b>Total de veces:</b> {{ registro.emocion_audio_cantidad }}</p>
+                      <p><b>{{ $t("Emoción del Audio:") }}</b> {{ translateE(registro.emocion_audio) }} <br> <b>{{ $t("Total de veces:") }}</b> {{ registro.emocion_audio_cantidad }}</p>
                     </div>
                     <div class="emotion-container">
                       <img :src="getEmotionImage(registro.emocion_foto)" alt="Emoción de las Fotos" class="emotion-image" />
-                      <p><b>Emoción de las Fotos:</b> {{ registro.emocion_foto }} <br> <b>Total de veces:</b> {{ registro.emocion_foto_cantidad }}</p>
+                      <p><b>{{ $t("Emoción de las Fotos:") }}</b> {{ translateE(registro.emocion_foto) }} <br> <b>{{ $t("Total de veces:") }}</b> {{ registro.emocion_foto_cantidad }}</p>
                     </div>
                     <div class="emotion-container">
                       <img :src="getEmotionImage(registro.emocion_audio_foto)" alt="Emoción Combinado" class="emotion-image" />
-                      <p><b>Emoción Combinado:</b> {{ registro.emocion_audio_foto }} <br> <b>Total de veces:</b> {{ registro.emocion_audio_foto_cantidad }}</p>
+                      <p><b>{{ $t("Emoción Combinado:") }}</b> {{ translateE(registro.emocion_audio_foto) }} <br> <b>{{ $t("Total de veces:") }}</b> {{ registro.emocion_audio_foto_cantidad }}</p>
                     </div>
                   </template>
                 </div>
@@ -33,14 +33,14 @@
                         <div v-for="(row, rowIndex) in registro.emocion_distribucion" :key="rowIndex" class="emotion-row">
                             <p style="margin: 30px 10px;">
                                 <b>
-                                    {{ rowIndex === 0 ? 'Emociones del Audio:' : rowIndex === 1 ? 'Emociones de las Fotos:' : 'Emociones Combinado:' }}
+                                    {{ rowIndex === 0 ? t('Emociones del Audio:') : rowIndex === 1 ? t('Emociones de las Fotos:') : t('Emociones Combinado:') }}
                                 </b>
                             </p>
                             <div style="display: flex; flex-grow: 1; justify-content: flex-start;">
                                 <!-- Ajustado para desestructurar el par [emotion, count] correctamente -->
                                 <div v-for="([emotion, count], emotionIndex) in row" :key="emotionIndex" class="emotion-container">
                                     <img :src="getEmotionImage(emotion)" class="emotion-image" />
-                                    <p style="text-align: center;">{{ emotion }} - {{ count }}</p> <!-- Nombre de la emoción y su conteo -->
+                                    <p style="text-align: center;">{{ translateE(emotion) }} - {{ count }}</p> <!-- Nombre de la emoción y su conteo -->
                                 </div>
                             </div>
                         </div>
@@ -49,14 +49,14 @@
                         <div v-for="(row, rowIndex) in registro.emocion_diversidad" :key="rowIndex" class="emotion-row">
                             <p style="margin: 30px 10px;">
                                 <b>
-                                    {{ rowIndex === 0 ? 'Emociones del Audio:' : rowIndex === 1 ? 'Emociones de las Fotos:' : 'Emociones Combinado:' }}
+                                    {{ rowIndex === 0 ? t('Emociones del Audio:') : rowIndex === 1 ? t('Emociones de las Fotos:') : t('Emociones Combinado:') }}
                                 </b>
                             </p>
                             <div style="display: flex; flex-grow: 1; justify-content: flex-start;">
                                 <!-- Ajustado para desestructurar el par [emotion, count] correctamente -->
                                 <div v-for="([emotion, count], emotionIndex) in row" :key="emotionIndex" class="emotion-container">
                                     <img :src="getEmotionImage(emotion)" class="emotion-image" />
-                                    <p style="text-align: center;">{{ emotion }} - {{ formatCount(count) }}%</p> <!-- Nombre de la emoción y su conteo -->
+                                    <p style="text-align: center;">{{ translateE(emotion) }} - {{ formatCount(count) }}%</p> <!-- Nombre de la emoción y su conteo -->
                                 </div>
                             </div>
                         </div>
@@ -76,7 +76,9 @@ import { ref, onMounted } from 'vue';
 import { useAuthStore } from '@/store/auth';
 import LoadingPage from "../components/LoadingPage.vue";
 import axios from 'axios';
+import { useI18n } from "vue-i18n";
 
+const { t } = useI18n(); // Usa t en lugar de $t
 const authStore = useAuthStore();
 const estadisticas = ref([
   {
@@ -97,6 +99,23 @@ const estadisticas = ref([
     emocion_diversidad: [[], [], []], // Tres filas para audio, foto y combinado
   }
 ]);
+
+const translate = (fecha) => {
+  if (fecha === 'Emoción Más Común') return t("Emoción Más Común");
+  if (fecha === 'Distribución de Emociones') return t("Distribución de Emociones");
+  if (fecha === 'Diversidad de Emociones') return t("Diversidad de Emociones");
+  return fecha; // Default in case the value is different
+};
+
+const translateE = (emotion) => {
+  if (emotion === 'Asco') return t("Asco");
+  if (emotion === 'Felicidad') return t("Felicidad");
+  if (emotion === 'Ira') return t("Ira");
+  if (emotion === 'Miedo') return t("Miedo");
+  if (emotion === 'Neutralidad') return t("Neutralidad");
+  if (emotion === 'Tristeza') return t("Tristeza");
+  return emotion; // Default in case the value is different
+};
 
 const loading = ref(false);
 

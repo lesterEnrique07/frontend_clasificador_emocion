@@ -3,17 +3,17 @@
         <v-row justify="center">
             <v-col cols="12" sm="8" md="4">
                 <v-card class="border border-success">
-                    <v-card-title class="bg-success text-white">LOGIN</v-card-title>
+                    <v-card-title class="bg-success text-white">{{ $t("INICIAR SESIÓN") }}</v-card-title>
                     <v-card-text>
                         <v-form @submit.prevent="authStore.login(form)">
-                            <v-text-field v-model="form.email" label="Email" outlined prepend-icon="mdi-at"
+                            <v-text-field v-model="form.email" :label="$t('Correo electrónico')" outlined prepend-icon="mdi-at"
                                 autofocus class="input" required>
                             
                             </v-text-field>
-                            <v-text-field v-model="form.password" label="Password" outlined prepend-icon="mdi-key"
+                            <v-text-field v-model="form.password" :label="$t('Contraseña')" outlined prepend-icon="mdi-key"
                                 type="password" class="input" required></v-text-field>
-                            <v-btn type="submit" class="bg-blue-grey-darken-4 input" dark block >Login</v-btn>
-                            <v-btn to="/register" class="bg-blue-grey-darken-4 input" dark block>Registrarse</v-btn>
+                            <v-btn type="submit" class="bg-blue-grey-darken-4 input" dark block >{{ $t("Iniciar sesión") }}</v-btn>
+                            <v-btn to="/register" class="bg-blue-grey-darken-4 input" dark block>{{ $t("Registrarse") }}</v-btn>
                         </v-form>
                     </v-card-text>
                 </v-card>

@@ -4,60 +4,60 @@
     <v-row justify="center">
       <v-col cols="12" md="8">
         <v-card class="border border-success">
-          <v-card-title class="bg-success text-white" >Perfil del Usuario</v-card-title>
+          <v-card-title class="bg-success text-white" >{{ $t("Perfil del Usuario") }}</v-card-title>
           <v-card-text>
             <v-list dense>
               <v-list-item>
                 <v-list-item-content>
-                  <v-list-item-title>Nombre</v-list-item-title>
+                  <v-list-item-title>{{ $t("Nombre") }}</v-list-item-title>
                   <v-list-item-subtitle>{{ paciente.nombre }}</v-list-item-subtitle>
                 </v-list-item-content>
               </v-list-item>
               <v-list-item>
                 <v-list-item-content>
-                  <v-list-item-title>Apellido</v-list-item-title>
+                  <v-list-item-title>{{ $t("Apellido") }}</v-list-item-title>
                   <v-list-item-subtitle>{{ paciente.apellido }}</v-list-item-subtitle>
                 </v-list-item-content>
               </v-list-item>
               <v-list-item>
                 <v-list-item-content>
-                  <v-list-item-title>CI</v-list-item-title>
+                  <v-list-item-title>{{ $t("CI") }}</v-list-item-title>
                   <v-list-item-subtitle>{{ paciente.ci }}</v-list-item-subtitle>
                 </v-list-item-content>
               </v-list-item>
               <v-list-item>
                 <v-list-item-content>
-                  <v-list-item-title>Fecha de Nacimiento</v-list-item-title>
+                  <v-list-item-title>{{ $t("Fecha de Nacimiento") }}</v-list-item-title>
                   <v-list-item-subtitle>{{ paciente.fecha_nacimiento }}</v-list-item-subtitle>
                 </v-list-item-content>
               </v-list-item>
               <v-list-item>
                 <v-list-item-content>
-                  <v-list-item-title>Sexo</v-list-item-title>
-                  <v-list-item-subtitle>{{ paciente.sexo }}</v-list-item-subtitle>
+                  <v-list-item-title>{{ $t("Sexo") }}</v-list-item-title>
+                  <v-list-item-subtitle>{{ translateSexo(paciente.sexo) }}</v-list-item-subtitle>
                 </v-list-item-content>
               </v-list-item>
               <v-list-item>
                 <v-list-item-content>
-                  <v-list-item-title>Dirección</v-list-item-title>
+                  <v-list-item-title>{{ $t("Dirección") }}</v-list-item-title>
                   <v-list-item-subtitle>{{ paciente.direccion }}</v-list-item-subtitle>
                 </v-list-item-content>
               </v-list-item>
               <v-list-item>
                 <v-list-item-content>
-                  <v-list-item-title>Teléfono</v-list-item-title>
+                  <v-list-item-title>{{ $t("Teléfono") }}</v-list-item-title>
                   <v-list-item-subtitle>{{ paciente.telefono }}</v-list-item-subtitle>
                 </v-list-item-content>
               </v-list-item>
               <v-list-item>
                 <v-list-item-content>
-                  <v-list-item-title>Email</v-list-item-title>
+                  <v-list-item-title>{{ $t("Correo electrónico") }}</v-list-item-title>
                   <v-list-item-subtitle>{{ paciente.correo }}</v-list-item-subtitle>
                 </v-list-item-content>
               </v-list-item>
               <v-list-item>
                 <v-list-item-content>
-                  <v-list-item-title>Usuario</v-list-item-title>
+                  <v-list-item-title>{{ $t("Usuario") }}</v-list-item-title>
                   <v-list-item-subtitle>{{ paciente.usuario }}</v-list-item-subtitle>
                 </v-list-item-content>
               </v-list-item>
@@ -74,7 +74,9 @@ import { ref, onMounted } from "vue";
 import LoadingPage from "../components/LoadingPage.vue";
 import axios from 'axios';
 import { useAuthStore } from '@/store/auth';
+import { useI18n } from "vue-i18n"; // Importa useI18n
 
+const { t } = useI18n(); // Extrae t desde useI18n
 const loading = ref(false);
 const paciente = ref({
   nombre: '',
@@ -89,6 +91,12 @@ const paciente = ref({
 });
 
 const authStore = useAuthStore();
+
+const translateSexo = (sexo) => {
+  if (sexo === 'Masculino') return t("Masculino");
+  if (sexo === 'Femenino') return t("Femenino");
+  return sexo; // Default in case the value is different
+};
 
 onMounted(async () => {
   loading.value = true;

@@ -5,7 +5,7 @@
     <v-row justify="center">
       <v-col cols="12" sm="10" md="8">
         <v-card class="border border-success">
-                <v-card-title class="bg-success text-white">Registros</v-card-title>
+                <v-card-title class="bg-success text-white">{{ $t("Registros") }}</v-card-title>
                 <div v-for="sesion in sesions" :key="sesion.id" class="registro-card">
                   <div class="registro-info">
                     <p class="registro-date">{{ formatDate(sesion.fecha) }}</p>
@@ -15,7 +15,7 @@
                       <img :src="getEmotionImage(sesion.emocion_audio_foto)" alt="Emoción Combinado" class="emotion-image" />
                     </div>
                   </div>
-                  <button @click="revisarSesion(sesion.id)" class="revisar-button">Revisar</button>
+                  <button @click="revisarSesion(sesion.id)" class="revisar-button">{{ $t("Revisar") }}</button>
                 </div>
         </v-card>
       </v-col>
@@ -30,7 +30,9 @@ import { useAuthStore } from '@/store/auth';
 import { useRouter } from 'vue-router';
 import LoadingPage from "../components/LoadingPage.vue";
 import axios from 'axios';
+import { useI18n } from 'vue-i18n'; // Importar el hook de i18n
 
+const { locale } = useI18n(); 
 const sesions = ref([]);
 const router = useRouter();
 const authStore = useAuthStore();
@@ -109,8 +111,11 @@ const formatDate = (date) => {
   // Verifica si el valor de la fecha no es null y procede con la conversión
   if (!date) return 'Fecha no disponible';
   
-  // Convierte la cadena de fecha en un objeto Date y aplica formato en español
-  return new Date(date).toLocaleDateString('es-ES', {
+  // El idioma activo (en-GB o es-ES)
+  const localeIdentifier = locale.value === 'es' ? 'es-ES' : 'en-GB';
+  
+  // Convierte la cadena de fecha en un objeto Date y aplica el formato según el idioma activo
+  return new Date(date).toLocaleDateString(localeIdentifier, {
     year: 'numeric',
     month: 'long',
     day: 'numeric',

@@ -4,17 +4,17 @@
       <v-row column="3">
         <v-col md="6" sm="12">
           <div class="contact-info">
-            <h4>Contactos:</h4>
-            <p>Teléfono celular: +5356100659</p>
-            <p>Email personal: lesterenriquep7@gmail.com</p>
-            <p>Teléfono casa: 42282458</p>
-            <p>Email institucional: lpcarballedo@uclv.cu</p>
+            <h4>{{ $t("Contactos:") }}</h4>
+            <p>{{ $t("Teléfono celular:") }}</p>
+            <p>{{ $t("Email personal:") }}</p>
+            <p>{{ $t("Teléfono casa:") }}</p>
+            <p>{{ $t("Email institucional:") }}</p>
           </div>
         </v-col>
 
         <v-col md="6" sm="12">
           <div class="contact-info">
-            <h4>Equipo de desarrollo</h4>
+            <h4>{{ $t("Equipo de desarrollo") }}</h4>
             <ul style="list-style-type: none;">
               <li><p>Lester Enrique Pérez Carballedo</p></li>
             </ul>
@@ -26,8 +26,7 @@
     <v-container>
       <v-row>
         <v-col>
-          <p class="text-center">© <span id="year">2024</span> Clasificador de Emociones. Todos los derechos
-            reservados.</p>
+          <p class="text-center">© <span id="year">2024</span> {{ $t("Clasificador de Emociones. Todos los derechos reservados.") }}</p>
         </v-col>
       </v-row>
     </v-container>

@@ -5,34 +5,34 @@
     <v-row justify="center">
       <v-col cols="12" sm="10" md="8">
         <v-card class="border border-success">
-          <v-card-title class="bg-success text-white">Clasificación de Emociones</v-card-title>
+          <v-card-title class="bg-success text-white">{{ $t("Clasificación de Emociones") }}</v-card-title>
           <v-card-text>
-            <v-btn @click="startRecording" :disabled="recording || recordingCompleted" class="bg-blue-grey-darken-4 input" dark block>Iniciar Grabación</v-btn>
-            <v-btn @click="toggleRecording" :disabled="!recording" :class="['btn-separado', recording ? (paused ? 'bg-yellow-darken-4' : 'bg-red-darken-4') : 'bg-grey darken-1']" dark block> {{ paused ? 'Continuar Grabación' : 'Pausar Grabación' }} </v-btn>
+            <v-btn @click="startRecording" :disabled="recording || recordingCompleted" class="bg-blue-grey-darken-4 input" dark block>{{ $t("Iniciar Grabación") }}</v-btn>
+            <v-btn @click="toggleRecording" :disabled="!recording" :class="['btn-separado', recording ? (paused ? 'bg-yellow-darken-4' : 'bg-red-darken-4') : 'bg-grey darken-1']" dark block> {{ translate(paused ? 'Continuar Grabación' : 'Pausar Grabación') }} </v-btn>
             <v-progress-circular v-if="loading" indeterminate></v-progress-circular>
-            <div v-if="timeRemaining">Tiempo restante: {{ timeRemaining }} segundos</div>
+            <div v-if="timeRemaining">{{ $t("Tiempo restante:") }} {{ timeRemaining }} {{ $t("segundos") }}</div>
             <div class="photos">
               <img v-for="(photo, index) in photos" :key="index" :src="photo.data" class="photo"/>
             </div>
             <audio v-if="audioURL" :src="audioURL" controls class="audio"></audio>
-            <v-btn v-if="photos.length === 5 && !recording" @click="processRecording" :disabled="processButtonDisabled" class="bg-green-darken-4 input" dark block>Procesar</v-btn>
-            <v-btn v-if="showSaveButton && photos.length === 5 && !recording" @click="saveResults" class="bg-yellow-darken-4 input" dark block :disabled="saveButtonDisabled">Guardar</v-btn>
-            <v-btn @click="resetOrCancel" class="bg-blue-grey-darken-4 input" dark block>{{ cancelButtonLabel }}</v-btn>
+            <v-btn v-if="photos.length === 5 && !recording" @click="processRecording" :disabled="processButtonDisabled" class="bg-green-darken-4 input" dark block>{{ $t("Procesar") }}</v-btn>
+            <v-btn v-if="showSaveButton && photos.length === 5 && !recording" @click="saveResults" class="bg-yellow-darken-4 input" dark block :disabled="saveButtonDisabled">{{ $t("Guardar") }}</v-btn>
+            <v-btn @click="resetOrCancel" class="bg-blue-grey-darken-4 input" dark block>{{ translate(cancelButtonLabel) }}</v-btn>
             <div v-if="audioEmotions || photoEmotions || combinedEmotions" class="emotion-results">
                 <div v-if="audioEmotions" class="emotion-box">
                   <img :src="getEmotionImage(audioEmotions)" alt="Emoción del Audio" class="emotion-image" />
-                  <h4>Emoción del Audio</h4>
-                  <p>{{ traducirEmocion(audioEmotions) }}</p>
+                  <h4>{{ $t("Emoción del Audio") }}</h4>
+                  <p>{{ translateE(traducirEmocion(audioEmotions)) }}</p>
                 </div>
                 <div v-if="photoEmotions" class="emotion-box">
                   <img :src="getEmotionImage(photoEmotions)" alt="Emoción de las Fotos" class="emotion-image" />
-                  <h4>Emoción de las Fotos</h4>
-                  <p>{{ traducirEmocion(photoEmotions) }}</p>
+                  <h4>{{ $t("Emoción de las Fotos") }}</h4>
+                  <p>{{ translateE(traducirEmocion(photoEmotions)) }}</p>
                 </div>
                 <div v-if="combinedEmotions" class="emotion-box">
                   <img :src="getEmotionImage(combinedEmotions)" alt="Emoción Combinado" class="emotion-image" />
-                  <h4>Emoción Combinado</h4>
-                  <p>{{ traducirEmocion(combinedEmotions) }}</p>
+                  <h4>{{ $t("Emoción Combinado") }}</h4>
+                  <p>{{ translateE(traducirEmocion(combinedEmotions)) }}</p>
                 </div>
               </div>
             <video ref="video" style="display: none;"></video>
@@ -51,7 +51,9 @@ import { useRouter } from 'vue-router';
 import LoadingPage from "../components/LoadingPage.vue";
 import axios from 'axios';
 import { emotionApi } from '../axiosInstances';
+import { useI18n } from "vue-i18n";
 
+const { t } = useI18n(); // Usa t en lugar de $t
 const authStore = useAuthStore();
 const router = useRouter();
 const loading = ref(false);
@@ -112,6 +114,24 @@ const getEmotionImage = (emotion) => {
     "other": require('@/assets/5-Neutralidad.jpg'),
   };
   return emotionImages[emotion];
+};
+
+const translate = (pausa) => {
+  if (pausa === 'Continuar Grabación') return t("Continuar Grabación");
+  if (pausa === 'Pausar Grabación') return t("Pausar Grabación");
+  if (pausa === 'Cancelar') return t("Cancelar");
+  if (pausa === 'Reiniciar') return t("Reiniciar");
+  return pausa; // Default in case the value is different
+};
+
+const translateE = (emotion) => {
+  if (emotion === 'Asco') return t("Asco");
+  if (emotion === 'Felicidad') return t("Felicidad");
+  if (emotion === 'Ira') return t("Ira");
+  if (emotion === 'Miedo') return t("Miedo");
+  if (emotion === 'Neutralidad') return t("Neutralidad");
+  if (emotion === 'Tristeza') return t("Tristeza");
+  return emotion; // Default in case the value is different
 };
 
 const startRecording = async () => {

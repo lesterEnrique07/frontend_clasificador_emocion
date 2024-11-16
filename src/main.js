@@ -1,8 +1,11 @@
 // main.js
 import { createApp, markRaw } from 'vue';
+import { createI18n } from 'vue-i18n';
 import App from './App.vue';
 import axios from 'axios';
 import router from './router'; // Ruta al archivo router.js
+import en from './locales/en.json';
+import es from './locales/es.json';
 //Pina
 import { createPinia } from 'pinia'
 import { createPersistedState } from 'pinia-plugin-persistedstate'
@@ -41,8 +44,18 @@ pinia.use(({ store }) => {
 });
 pinia.use(createPersistedState);
 
+const messages = {
+    en,
+    es
+  };
+  
+const i18n = createI18n({
+    locale: 'es', // Configura el idioma predeterminado a español
+    messages,
+  });
+
 //Creando app
-const app = createApp(App).use(router).use(pinia).use(vuetify);
+const app = createApp(App).use(router).use(pinia).use(vuetify).use(i18n);
 
 
 app.config.globalProperties.$axios = axios;

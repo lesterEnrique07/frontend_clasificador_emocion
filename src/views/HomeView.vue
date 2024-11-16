@@ -11,12 +11,10 @@
             <v-col cols="6">
               <v-card class="card-text">
                 <v-card-text>
-                  <h2>Hola &#x1F44B;</h2>
-                  <p class="abstract">Bienvenido a nuestro innovador sistema de clasificación de emociones a través del rostro y la voz. 
-                    Aquí, descubrirás potentes herramientas diseñadas para analizar y comprender las emociones humanas con precisión y eficiencia.
-                    ¡Prepárate para transformar la manera en que entiendes y gestionas las emociones!</p>
+                  <h2>{{ $t("Hola") }} &#x1F44B;</h2>
+                  <p class="abstract">{{ $t("Bienvenido") }}</p>
                   <v-btn @click="scrollToElement">
-                    Ver Más
+                    {{ $t("Ver Más") }}
                   </v-btn>
                 </v-card-text>
               </v-card>
@@ -36,12 +34,10 @@
             <v-col cols="6">
               <v-card class="card-text">
                 <v-card-text>
-                  <h2>Clasificación</h2>
-                  <p class="abstract">Explora nuestra avanzada sección para grabar audios y tomar fotos, diseñada para la clasificación precisa de emociones. 
-                    Aquí, los usuarios pueden capturar tanto su voz como expresiones faciales, proporcionando datos ricos que permiten a nuestro sistema analizar y 
-                    determinar sus emociones con alta precisión.</p>
+                  <h2>{{ $t("Clasificación") }}</h2>
+                  <p class="abstract">{{ $t("Explora") }}</p>
                   <v-btn to="/clasificacion">
-                    Ver más
+                    {{ $t("Ver Más") }}
                   </v-btn>
                 </v-card-text>
               </v-card>
@@ -61,11 +57,9 @@
             <v-col cols="6">
               <v-card class="card-text">
                 <v-card-text>
-                  <h2>Registros</h2> 	
-                  <p class="abstract">Sumérgete en esta detallada sección, donde encontrarás audios y fotos ya clasificados listos para ser revisados. 
-                    Aquí, los usuarios pueden acceder a sus grabaciones de voz y capturas faciales, permitiendo una revisión minuciosa de las emociones 
-                    previamente analizadas.</p>
-                  <v-btn to="/registros">Ver más</v-btn>
+                  <h2>{{ $t("Registros") }}</h2> 	
+                  <p class="abstract">{{ $t("Sumérgete") }}</p>
+                  <v-btn to="/registros">{{ $t("Ver Más") }}</v-btn>
                 </v-card-text>
               </v-card>
             </v-col>
@@ -84,10 +78,8 @@
             <v-col cols="6">
               <v-card class="card-text">
                 <v-card-text>
-                  <h2>Estadísticas</h2>
-                  <p class="abstract">Revisa esta sección donde los datos recopilados de tus registros se transforman 
-                    en información valiosa. Aquí, los usuarios pueden acceder a detallados datos estadísticos sobre sus emociones, generados a partir 
-                    de las grabaciones de voz y capturas faciales clasificadas.</p>
+                  <h2>{{ $t("Estadísiticas") }}</h2>
+                  <p class="abstract">{{ $t("Revisa") }}</p>
                   <v-btn to="/estadisticas">Ver más</v-btn>
                 </v-card-text>
               </v-card>
