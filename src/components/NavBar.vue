@@ -9,7 +9,7 @@
         <v-btn to="/">{{ $t("Home") }}</v-btn>
         <v-btn to="/clasificacion">{{ $t("Clasificación") }}</v-btn>
         <v-btn to="/registros">{{ $t("Registros") }}</v-btn>
-        <v-btn to="/estadisticas">{{ $t("Estadísiticas") }}</v-btn>
+        <v-btn to="/estadisticas">{{ $t("Estadísticas") }}</v-btn>
         <v-btn to="/perfil">{{ $t("Perfil") }}</v-btn>
         <v-btn to="/about">{{ $t("Sobre nosotros") }}</v-btn>
       </div>

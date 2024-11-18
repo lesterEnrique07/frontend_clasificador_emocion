@@ -78,7 +78,7 @@
             <v-col cols="6">
               <v-card class="card-text">
                 <v-card-text>
-                  <h2>{{ $t("Estadísiticas") }}</h2>
+                  <h2>{{ $t("Estadísticas") }}</h2>
                   <p class="abstract">{{ $t("Revisa") }}</p>
                   <v-btn to="/estadisticas">Ver más</v-btn>
                 </v-card-text>

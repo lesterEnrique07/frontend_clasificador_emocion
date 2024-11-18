@@ -5,7 +5,7 @@
       <v-row justify="center">
         <v-col cols="16" sm="12" md="10">
           <v-card class="border border-primary">
-            <v-card-title class="bg-success text-white">{{ $t("Estadísiticas") }}</v-card-title>
+            <v-card-title class="bg-success text-white">{{ $t("Estadísticas") }}</v-card-title>
             <div v-for="(registro, index) in estadisticas" :key="index" class="registro-card">
               <div class="registro-info">
                 <p class="registro-date" style="text-align: center;">

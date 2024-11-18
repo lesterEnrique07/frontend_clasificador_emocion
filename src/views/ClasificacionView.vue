@@ -80,6 +80,7 @@ const cancelButtonLabel = ref("Cancelar");
 const audioURLNube = ref('');
 const photoURLsNube = ref([]);
 const audioFullBlob = ref(null);
+let audioFileName = ``;
 let audiofilePath = ``;
 let fotofilePath = ``;
 let photoInterval = null;
@@ -417,7 +418,7 @@ const processRecording = async () => {
 };
 
 const saveAudioToLocal = async (blob) => {
-  const audioFileName = `audio_${Date.now()}.wav`;
+  audioFileName = `audio_${Date.now()}.wav`;
   audiofilePath = `http://localhost/emociones/${audioFileName}`;
 
   const a = document.createElement('a');
@@ -497,7 +498,7 @@ const saveResults = async () => {
 
     // Guardar el audio en la base de datos
     const audioResponse = await axios.post('/api/multimedia', {
-      nombre: `audio_${Date.now()}.wav`,
+      nombre: audioFileName,
       tipo: "Audio",
       direccion_url: audioURLNube.value,
       sesion_id: sesionId
@@ -536,7 +537,7 @@ const saveResults = async () => {
       
       // Guardar cada foto en la base de datos
       const photoResponse = await axios.post('/api/multimedia', {
-        nombre: `photo_${index + 1}_${Date.now()}.png`,
+        nombre: photoFileName,
         tipo: "Foto",
         direccion_url: photoURLsNube.value[index],
         sesion_id: sesionId
@@ -579,7 +580,8 @@ const cancel = () => {
   audioEmotions.value = null; 
   photoEmotions.value = null; 
   combinedEmotions.value = null; 
-  audioURL.value = ''; 
+  audioURL.value = '';
+  photoURLsNube.value = [];
   loading.value = false; 
   recording.value = false; 
   paused.value = true; 
