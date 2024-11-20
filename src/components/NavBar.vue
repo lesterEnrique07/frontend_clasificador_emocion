@@ -1,10 +1,11 @@
 <template>
-    <div>
-        <!-- nav-bar -->
-        <v-app-bar app>
+  <div>
+    <!-- nav-bar -->
+    <v-app-bar app>
       <div v-if="authStore.user" class="menu-icon">
         <v-app-bar-nav-icon @click.stop="drawer = !drawer"></v-app-bar-nav-icon>
       </div>
+
       <div v-if="authStore.user" class="nav-bar-items">
         <v-btn to="/">{{ $t("Home") }}</v-btn>
         <v-btn to="/clasificacion">{{ $t("Clasificación") }}</v-btn>
@@ -13,20 +14,24 @@
         <v-btn to="/perfil">{{ $t("Perfil") }}</v-btn>
         <v-btn to="/about">{{ $t("Sobre nosotros") }}</v-btn>
       </div>
+
       <v-toolbar-title class="title">{{ $t("Clasificador de Emociones") }}</v-toolbar-title>
+
       <div @click="toggleLanguageMenu" class="flag-button">
         <img :src="currentFlag" alt="Current language flag" class="flag-icon" />
       </div>
+
       <div v-if="showLanguageMenu" class="language-menu">
         <img :src="require('@/assets/flag-spain.png')" @click="setLanguage('es')" alt="Spanish flag" class="flag-icon" />
         <img :src="require('@/assets/flag-uk.png')" @click="setLanguage('en')" alt="UK flag" class="flag-icon" />
       </div>
+
       <v-btn class="bg-green-darken-4" v-if="authStore.user" @click="authStore.logout" prepend-icon="mdi-logout">
         <span class="logout">{{ $t("CERRAR SESIÓN") }}</span>
       </v-btn>
     </v-app-bar>
 
-    <!--Menu lateral-->
+    <!-- Menu lateral -->
     <v-navigation-drawer v-model="drawer" temporary>
       <v-list-item title="SGC"></v-list-item>
       <v-divider></v-divider>
@@ -43,29 +48,19 @@
 </template>
 
 <script setup>
-import { useAuthStore } from '@/store/auth';
-import { useI18n } from 'vue-i18n';
-import { ref } from 'vue';
+import useNavBarViewModel from './NavBarViewModel.js';
 
-const authStore = useAuthStore();
-const drawer = ref(false);
-const showLanguageMenu = ref(false);
-const currentFlag = ref(require('@/assets/flag-spain.png')); // bandera predeterminada en español
-
-const { locale } = useI18n();
-
-const toggleLanguageMenu = () => {
-  showLanguageMenu.value = !showLanguageMenu.value;
-};
-
-const setLanguage = (lang) => {
-  locale.value = lang;
-  currentFlag.value = lang === 'es' ? require('@/assets/flag-spain.png') : require('@/assets/flag-uk.png');
-  showLanguageMenu.value = false;
-};
+const {
+  authStore,
+  drawer,
+  showLanguageMenu,
+  currentFlag,
+  toggleLanguageMenu,
+  setLanguage,
+} = useNavBarViewModel();
 </script>
 
-<style>
+<style scoped>
 .title {
   margin: 0 6rem !important;
 }
@@ -80,18 +75,19 @@ const setLanguage = (lang) => {
 }
 
 .flag-icon {
-  width: 35px; /* Adjust the size here */
+  width: 35px;
   height: 24px;
   display: inline-block;
-  border-radius: 10%; /* Optional: makes the flag appear circular */
+  border-radius: 10%;
   object-fit: cover;
-  margin-right: 8px; /* Space between icons if needed */
+  margin-right: 8px;
 }
 
 @media (max-width: 860px) {
   .logout {
     display: none;
   }
+
   .nav-bar-items {
     display: none;
   }

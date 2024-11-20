@@ -237,7 +237,7 @@ const calculateFechaNacimiento = (ci) => {
   const year = ci.substring(0, 2);
   const month = ci.substring(2, 4);
   const day = ci.substring(4, 6);
-  const fullYear = year < '25' ? `20${year}` : `19${year}`;
+  const fullYear = parseInt(year) < 25 ? `20${year}` : `19${year}`; // Asume que los años menores a 25 pertenecen al siglo XXI
   return `${fullYear}-${month}-${day}`; 
 };
 

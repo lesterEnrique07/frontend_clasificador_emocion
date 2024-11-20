@@ -5,10 +5,10 @@
         <v-col md="6" sm="12">
           <div class="contact-info">
             <h4>{{ $t("Contactos:") }}</h4>
-            <p>{{ $t("Teléfono celular:") }}</p>
-            <p>{{ $t("Email personal:") }}</p>
-            <p>{{ $t("Teléfono casa:") }}</p>
-            <p>{{ $t("Email institucional:") }}</p>
+            <p>{{ contactInfo.cellPhone }}</p>
+            <p>{{ contactInfo.personalEmail }}</p>
+            <p>{{ contactInfo.homePhone }}</p>
+            <p>{{ contactInfo.institutionalEmail }}</p>
           </div>
         </v-col>
 
@@ -16,7 +16,9 @@
           <div class="contact-info">
             <h4>{{ $t("Equipo de desarrollo") }}</h4>
             <ul style="list-style-type: none;">
-              <li><p>Lester Enrique Pérez Carballedo</p></li>
+              <li v-for="(member, index) in team" :key="index">
+                <p>{{ member }}</p>
+              </li>
             </ul>
           </div>
         </v-col>
@@ -26,7 +28,7 @@
     <v-container>
       <v-row>
         <v-col>
-          <p class="text-center">© <span id="year">2024</span> {{ $t("Clasificador de Emociones. Todos los derechos reservados.") }}</p>
+          <p class="text-center">© {{ currentYear }} {{ $t("Clasificador de Emociones. Todos los derechos reservados.") }}</p>
         </v-col>
       </v-row>
     </v-container>
@@ -36,14 +38,26 @@
 <script>
 export default {
   name: 'FooterPage',
-  methods: {
-    setYear() {
-      let fecha = new Date();
-      document.querySelector('#year').innerHTML = fecha.getFullYear();
+  computed: {
+    // Propiedad computada para traducir los datos de contacto
+    contactInfo() {
+      return {
+        cellPhone: this.$t("Teléfono celular:"),
+        personalEmail: this.$t("Email personal:"),
+        homePhone: this.$t("Teléfono casa:"),
+        institutionalEmail: this.$t("Email institucional:")
+      };
+    },
+    // Año actual para el pie de página
+    currentYear() {
+      return new Date().getFullYear();
+    },
+    // Propiedad computada para el equipo de desarrollo (esto es opcional, pero sigue la misma lógica)
+    team() {
+      return [
+        this.$t("Lester Enrique Pérez Carballedo")
+      ];
     }
-  },
-  mounted() {
-    this.setYear();
   }
 };
 </script>
@@ -58,12 +72,10 @@ export default {
   background-color: rgb(211, 211, 211);
   width: 100%;
   padding: 2rem 0;
-
 }
 
 p.text-center {
   color: #302f2f;
-  /* Texto blanco */
 }
 </style>
 
