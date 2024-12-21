@@ -1,6 +1,6 @@
-# Sistema de Gestión de Cursos (Frontend)
+# Clasificador de Emociones (Frontend)
 
-Este proyecto frontend en Vue.js consume una API implementada en Laravel para gestionar cursos, ediciones de cursos y empleados. El sistema proporciona funcionalidades de autenticación, así como operaciones CRUD para empleados, cursos y ediciones, y consultas específicas para obtener información sobre las clases recibidas e impartidas por un empleado, así como detalles de las ediciones.
+Este proyecto frontend en Vue.js consume una API implementada en Laravel para clasificar emociones a partir de la voz y el rostro. 
 
 ## Requerimientos
 
@@ -14,7 +14,7 @@ Este proyecto frontend en Vue.js consume una API implementada en Laravel para ge
 1. Clona el repositorio:
 
 ```
-git clone https://github.com/DDansAbelenda/sg-cursos-front.git
+git clone https://github.com/usuario
 ```
 
 2. Instala las dependencias del proyecto con Yarn:
